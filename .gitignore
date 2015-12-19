@@ -1,0 +1,4 @@
+/.vs/snapshot/v14/*.suo
+/Debug/*.exe
+/Debug/*.ilk
+/Debug/*.pdb
