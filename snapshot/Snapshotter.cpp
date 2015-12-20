@@ -1,10 +1,6 @@
 #include "stdafx.h"
 #include "Snapshotter.h"
 
-namespace {
-    constexpr int BUF_SIZE = 8192;
-}
-
 Snapshotter::Snapshotter()
 {
 }
@@ -23,14 +19,25 @@ void Snapshotter::snapshot(const char* file)
 
     Json::Reader reader;
     Json::Value event;
-    char line[BUF_SIZE];
-    while (stream.getline(line, BUF_SIZE)) {
+    
+    std::string line;
+    while (getline(stream, line)) {
         reader.parse(line, event, false);
-        partition(event);
+        insert(event);
+    }
+
+    merge();
+}
+
+void Snapshotter::insert(const Event& event)
+{
+    partitioner_.partition(event);
+    if (partitioner_.isfull()) {
+        partitioner_.flush();
     }
 }
 
-void Snapshotter::partition(const Event& event)
+void Snapshotter::merge()
 {
-    _partitioner.partition(event);
+    partitioner_.merge();
 }

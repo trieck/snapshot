@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Event.h"
+#include "EventWriter.h"
+#include "Partition.h"
 
 class Partitioner
 {
@@ -9,17 +11,22 @@ public:
     ~Partitioner();
 
     void partition(const Event& event);
-private:
-    void alloc();
+    bool isfull() const;
+    void flush();
+    void merge();
 
-    uint32_t lookup(const Event& event);
+private:
+    typedef std::vector<Event> EventVec;
+    std::unordered_map<std::string, EventVec> map_;
+    
+    EventVec& lookup(const Event& event);
     static std::string getKey(const Event& event);
 
-    char **record_; // array of pointers to partitions
-    char *pool_;    // allocation pool
-    char *ppool_;   // current allocation pointer
+    void flush(const std::string& key, std::vector<Event>& value);
+    void sort(std::vector<Event>& vec);
 
-    uint32_t size_; // total records in table
+    EventWriter writer_;
     uint32_t count_;
+    std::vector<std::unique_ptr<Partition>> partitions_;
 };
 

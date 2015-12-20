@@ -12,12 +12,12 @@ using std::endl;
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cerr << "usage: snapshot filename"<< endl;
+        cerr << "usage: snapshot filename" << endl;
         exit(1);
     }
 
     Timer timer;
-    
+
     Snapshotter snapshotter;
     try {
         snapshotter.snapshot(argv[1]);
@@ -28,6 +28,6 @@ int main(int argc, char* argv[])
     }
 
     cout << "    elapsed time " << timer << endl;
-    
+
     return 0;
 }

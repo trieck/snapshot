@@ -11,7 +11,8 @@ public:
 
     void snapshot(const char* file);
 private:
-    void partition(const Event& event);
+    void insert(const Event& event);
+    void merge();
 
-    Partitioner _partitioner;
+    Partitioner partitioner_;
 };

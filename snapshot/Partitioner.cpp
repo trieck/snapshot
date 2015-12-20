@@ -1,59 +1,87 @@
 #include "stdafx.h"
 #include "Partitioner.h"
-#include "util.h"
-#include "Primes.h"
+#include "radixsort.h"
 
 namespace {
+    const auto MAX_EVENTS = 1000;
 
-    // maximum memory size for records
-    constexpr auto MEM_SIZE = 67108864L;
+    struct EventPred : public std::unary_function<const Event&, bool> {
+        uint64_t bit_;
 
-    // maximum pool size
-    constexpr auto MAX_POOL = 2 * MEM_SIZE;
+        EventPred(uint64_t bit) : bit_(bit) {}
+        inline bool operator() (const Event& event) const {
+            auto sequenceNumber = event.getSequenceNumber();
+            return !(sequenceNumber & (1ULL << bit_));
+        }
+    };
+}
 
-    // size of pool
-    constexpr auto POOL_SIZE = 3 * MEM_SIZE;
-
-    // average size of a record
-    constexpr auto AVERAGE_SIZE = 1024L;
-
-    // maximum number of records
-    constexpr auto MAX_COUNT = MEM_SIZE / AVERAGE_SIZE;
-
-    constexpr auto FILL_RATIO = 2;
-};
-
-Partitioner::Partitioner()
+Partitioner::Partitioner() : count_(0)
 {
-    record_ = nullptr;
-    pool_ = ppool_ = nullptr;
-    size_ = count_ = 0;
 }
 
 Partitioner::~Partitioner()
 {
-    delete[] record_;
-    delete[] pool_;
 }
 
 void Partitioner::partition(const Event& event)
 {
-    if (record_ == nullptr)
-        alloc();
-
-    auto index = lookup(event);
+    EventVec& vec = lookup(event);
+    vec.push_back(event);
+    count_++;
 }
 
-uint32_t Partitioner::lookup(const Event& event)
+bool Partitioner::isfull() const
+{
+    return count_ >= MAX_EVENTS;
+}
+
+void Partitioner::flush()
+{
+    cout << "flushing to disk...";
+
+    for (auto& p : map_) {
+        flush(p.first, p.second);
+    }
+
+    map_.clear();
+    count_ = 0;
+
+    cout << "flushed." << endl;
+}
+
+void Partitioner::merge()
+{
+    //   for (auto& p : partitions_) {
+   //
+     //  }
+}
+
+void Partitioner::flush(const std::string& key, std::vector<Event>& vec)
+{
+    sort(vec);
+
+    std::unique_ptr<Partition> partition = Partition::makePartition(key);
+    partition->write(vec);
+    partitions_.push_back(std::move(partition));
+}
+
+void Partitioner::sort(std::vector<Event>& vec)
+{
+    radixsort<uint64_t, EventPred>(vec.begin(), vec.end());
+}
+
+Partitioner::EventVec& Partitioner::lookup(const Event& event)
 {
     std::string key = getKey(event);
 
-    uint32_t i = std::hash<std::string>()(key) % size_;
-
-    while (record_[i] && strcmp(record_[i], key.c_str()))
-        i = (i + 1) % size_;
-
-    return i;
+    auto it = map_.find(key);
+    if (it == map_.end()) {
+        return map_[key] = EventVec();
+    }
+    else {
+        return (*it).second;
+    }
 }
 
 std::string Partitioner::getKey(const Event& event)
@@ -66,16 +94,6 @@ std::string Partitioner::getKey(const Event& event)
         ss << '|' << root.asString();
     }
 
-    return Util::sha1(ss.str());
+    return ss.str();
 }
 
-void Partitioner::alloc()
-{
-    size_ = (uint32_t)Primes::prime(FILL_RATIO * MAX_COUNT);
-    count_ = 0;
-
-    record_ = new char*[size_];
-    memset(record_, 0, size_ * sizeof(char*));
-
-    ppool_ = pool_ = new char[POOL_SIZE];
-}

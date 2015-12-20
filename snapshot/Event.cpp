@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "Event.h"
 
-Event::Event(const Json::Value& event) : _event(event)
+Event::Event(const Json::Value& event) : event_(event)
 {
+    sequence_ = (*this)["EVENT_SEQUENCE_NUMBER"].asUInt64();
     parseMeta();
 }
 
@@ -12,17 +13,17 @@ Event::~Event()
 
 const Json::Value& Event::operator[](const char* key) const
 {
-    return _event[key];
+    return event_[key];
 }
 
 const Json::Value& Event::operator[](const std::string & key) const
 {
-    return _event[key];
+    return event_[key];
 }
 
 void Event::parseMeta()
 {
-    auto meta = _event["METADATA"];
+    auto meta = event_["METADATA"];
 
     std::string name;
     auto size = meta.size();
@@ -42,4 +43,14 @@ const Json::Value& Event::getMeta(const char* key) const
     }
 
     return it->second;
+}
+
+const Json::Value & Event::getEvent() const
+{
+    return event_;
+}
+
+uint64_t Event::getSequenceNumber() const
+{
+    return sequence_;
 }
