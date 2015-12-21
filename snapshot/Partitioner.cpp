@@ -1,17 +1,19 @@
 #include "stdafx.h"
 #include "Partitioner.h"
+#include "Merger.h"
 #include "radixsort.h"
 
 namespace {
     const auto MAX_EVENTS = 1000;
 
     struct EventPred : public std::unary_function<const Event&, bool> {
-        uint64_t bit_;
+        typedef uint64_t KEY_TYPE;
+        KEY_TYPE bit_;
 
-        EventPred(uint64_t bit) : bit_(bit) {}
+        EventPred(KEY_TYPE bit) : bit_(bit) {}
         inline bool operator() (const Event& event) const {
-            auto sequenceNumber = event.getSequenceNumber();
-            return !(sequenceNumber & (1ULL << bit_));
+            auto num = event.getSequenceNumber();
+            return !(num & (1ULL << bit_));
         }
     };
 }
@@ -52,23 +54,41 @@ void Partitioner::flush()
 
 void Partitioner::merge()
 {
-    //   for (auto& p : partitions_) {
-   //
-     //  }
+    cout << "merging...";
+
+    for (auto& pair : partitions_) {
+        Merger merger(pair.first);
+        merger.merge(pair.second);
+    }
+
+    cout << "complete." << endl;
 }
 
 void Partitioner::flush(const std::string& key, std::vector<Event>& vec)
 {
     sort(vec);
 
-    std::unique_ptr<Partition> partition = Partition::makePartition(key);
+    auto partition = Partition::makePartition(key);
     partition->write(vec);
-    partitions_.push_back(std::move(partition));
+
+    auto& partitions = getPartitions(key);
+    partitions.push_back(std::move(partition));
 }
 
 void Partitioner::sort(std::vector<Event>& vec)
 {
-    radixsort<uint64_t, EventPred>(vec.begin(), vec.end());
+    radixsort<EventPred>(vec.begin(), vec.end());
+}
+
+PartitionVec& Partitioner::getPartitions(const std::string& key)
+{
+    auto it = partitions_.find(key);
+    if (it == partitions_.end()) {
+        return partitions_[key] = PartitionVec();
+    }
+    else {
+        return (*it).second;
+    }
 }
 
 Partitioner::EventVec& Partitioner::lookup(const Event& event)

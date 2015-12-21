@@ -15,3 +15,5 @@ private:
     std::string name_;  // file name
 };
 
+typedef std::vector<std::unique_ptr<Partition>> PartitionVec;
+

@@ -17,16 +17,18 @@ public:
 
 private:
     typedef std::vector<Event> EventVec;
-    std::unordered_map<std::string, EventVec> map_;
-    
+        
     EventVec& lookup(const Event& event);
     static std::string getKey(const Event& event);
 
     void flush(const std::string& key, std::vector<Event>& value);
     void sort(std::vector<Event>& vec);
 
+    PartitionVec& getPartitions(const std::string& key);
+
     EventWriter writer_;
-    uint32_t count_;
-    std::vector<std::unique_ptr<Partition>> partitions_;
+    uint32_t count_;    
+    std::unordered_map<std::string, EventVec> map_;
+    std::unordered_map<std::string, PartitionVec> partitions_;
 };
 
