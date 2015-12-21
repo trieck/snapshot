@@ -32,4 +32,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+typedef std::vector<std::string> stringvec;
+
 #include "util.h"

@@ -34,3 +34,8 @@ std::unique_ptr<Partition> Partition::makePartition(const std::string& key)
 {
     return std::unique_ptr<Partition>(new Partition(key));
 }
+
+std::string Partition::getFilename() const
+{
+    return name_;
+}

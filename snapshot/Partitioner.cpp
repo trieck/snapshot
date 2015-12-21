@@ -5,18 +5,18 @@
 
 namespace {
     const auto MAX_EVENTS = 1000;
-
-    struct EventPred : public std::unary_function<const Event&, bool> {
-        typedef uint64_t KEY_TYPE;
-        KEY_TYPE bit_;
-
-        EventPred(KEY_TYPE bit) : bit_(bit) {}
-        inline bool operator() (const Event& event) const {
-            auto num = event.getSequenceNumber();
-            return !(num & (1ULL << bit_));
-        }
-    };
 }
+
+struct EventPred : public std::unary_function<const Event&, bool> {
+    typedef uint64_t KEY_TYPE;
+    KEY_TYPE bit_;
+
+    EventPred(KEY_TYPE bit) : bit_(bit) {}
+    inline bool operator() (const Event& event) const {
+        auto num = event.getSequenceNumber();
+        return !(num & (1ULL << bit_));
+    }
+};
 
 Partitioner::Partitioner() : count_(0)
 {
