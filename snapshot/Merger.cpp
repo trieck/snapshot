@@ -92,7 +92,7 @@ std::string Merger::mergeonce(size_t argc, stringvec::const_iterator it)
         list = least(recs);
         write(list);
     }
-
+    
     for (i = 0, it = save; i < argc; i++, it++) {
         recs[i]->stream.close();
         delete recs[i];

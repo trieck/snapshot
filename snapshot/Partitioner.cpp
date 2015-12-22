@@ -38,6 +38,9 @@ bool Partitioner::isfull() const
 
 void Partitioner::flush()
 {
+    if (map_.size() == 0)
+        return;
+
     cout << "flushing to disk...";
 
     for (auto& p : map_) {
