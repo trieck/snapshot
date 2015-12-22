@@ -3,9 +3,7 @@
 #include "Merger.h"
 #include "radixsort.h"
 
-namespace {
-    const auto MAX_EVENTS = 1000;
-}
+namespace { const auto MAX_EVENTS = 1000; }
 
 struct EventPred : public std::unary_function<const Event&, bool> {
     typedef uint64_t KEY_TYPE;

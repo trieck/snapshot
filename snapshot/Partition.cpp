@@ -22,6 +22,7 @@ void Partition::write(const std::vector<Event>& vec)
     
     EventWriter writer;
     for (const auto& event : vec) {
+        ofs << event.getSequenceNumber() << '\t';
         writer.write(ofs, event);
         ofs << endl;
     }

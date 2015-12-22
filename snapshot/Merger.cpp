@@ -108,14 +108,14 @@ std::string Merger::mergeonce(size_t argc, stringvec::const_iterator it)
 
 bool Merger::read(mergerec** recs) const
 {
-    auto read = 0;
-
     for (uint32_t i = 0; recs[i]; i++) {
-        if (recs[i]->stream >> recs[i]->key)
-            read++;
+        if (recs[i]->key == UINT64_MAX)
+            return false;
+        if (!(recs[i]->stream >> recs[i]->key))
+            recs[i]->key = UINT64_MAX;
     }
 
-    return read != 0;
+    return true;
 }
 
 mergerec** Merger::least(mergerec** recs)
@@ -123,11 +123,11 @@ mergerec** Merger::least(mergerec** recs)
     auto j = 0, k = 0;
 
     for (auto i = 0; recs[i]; i++) {
-        switch (memcmp(&recs[i]->key, &recs[k]->key, sizeof(uint64_t))) {
-        case -1:
+        if (recs[i]->key < recs[k]->key) {
             k = i;
-            j = 0;  // fall through
-        case 0:
+            j = 0;
+            array[j++] = recs[i];
+        } else if (recs[i]->key == recs[k]->key) {
             array[j++] = recs[i];
         }
     }
@@ -139,6 +139,15 @@ mergerec** Merger::least(mergerec** recs)
 
 bool Merger::write(mergerec** recs)
 {
+    if (recs[0]->key == UINT64_MAX)
+        return false;
+
+    std::string event;
+    for (auto i = 0; recs[i]; i++) {
+        getline(recs[i]->stream, event);
+        out_ << recs[i]->key << event << endl;
+    }
+
     return true;
 }
 
