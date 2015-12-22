@@ -41,30 +41,30 @@ void Partitioner::flush()
     if (map_.size() == 0)
         return;
 
-    cout << "flushing to disk...";
-
     for (auto& p : map_) {
         flush(p.first, p.second);
     }
 
     map_.clear();
     count_ = 0;
-
-    cout << "flushed." << endl;
 }
 
-void Partitioner::merge()
+PartitionVec Partitioner::merge()
 {
+    PartitionVec output;
+
     flush();
 
-    cout << "merging...";
+    PartitionPtr partition;
 
     for (auto& pair : partitions_) {
         Merger merger(pair.first);
-        merger.merge(pair.second);
+        output.push_back(merger.merge(pair.second));
     }
 
-    cout << "complete." << endl;
+    partitions_.clear();
+
+    return output;
 }
 
 void Partitioner::flush(const std::string& key, std::vector<Event>& vec)

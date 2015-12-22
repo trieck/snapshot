@@ -13,11 +13,11 @@ public:
     void partition(const Event& event);
     bool isfull() const;
     void flush();
-    void merge();
+    PartitionVec merge();
 
 private:
-    typedef std::vector<Event> EventVec;
-        
+    using EventVec = std::vector<Event>;
+
     EventVec& lookup(const Event& event);
     static std::string getKey(const Event& event);
 
@@ -27,7 +27,7 @@ private:
     PartitionVec& getPartitions(const std::string& key);
 
     EventWriter writer_;
-    uint32_t count_;    
+    uint32_t count_;
     std::unordered_map<std::string, EventVec> map_;
     std::unordered_map<std::string, PartitionVec> partitions_;
 };

@@ -19,13 +19,13 @@ void Snapshotter::snapshot(const char* file)
 
     Json::Reader reader;
     Json::Value event;
-    
+
     std::string line;
     while (getline(stream, line)) {
         reader.parse(line, event, false);
         insert(event);
     }
-    
+
     merge();
 }
 
@@ -39,5 +39,5 @@ void Snapshotter::insert(const Event& event)
 
 void Snapshotter::merge()
 {
-    partitioner_.merge();
+    PartitionVec partitions = partitioner_.merge();    
 }

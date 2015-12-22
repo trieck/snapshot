@@ -3,7 +3,7 @@
 
 namespace { const size_t NWAY = 100; }
 
-Merger::Merger(const std::string & key) : key_(key)
+Merger::Merger(const std::string& key) : key_(key)
 {
     pass_ = 0;
     array = new mergerec*[NWAY + 1];
@@ -11,33 +11,13 @@ Merger::Merger(const std::string & key) : key_(key)
 
 Merger::~Merger()
 {
-    close();
     delete[] array;
 }
 
-std::string Merger::merge(const PartitionVec& vec)
+PartitionPtr Merger::merge(const PartitionVec& vec)
 {
-    stringvec input = transform(vec);
-    pass_ = countpasses(input.size());
-    return mergemany(input.size(), input.begin());
-}
-
-void Merger::close()
-{
-    if (out_.is_open()) {
-        out_.close();
-    }
-}
-
-stringvec Merger::transform(const PartitionVec& vec)
-{
-    stringvec output;
-
-    for (const auto& p : vec) {
-        output.push_back(p->getFilename());
-    }
-
-    return output;
+    pass_ = countpasses(vec.size());
+    return mergemany(vec.size(), vec.begin());
 }
 
 size_t Merger::countpasses(size_t argc)
@@ -55,33 +35,22 @@ size_t Merger::countpasses(size_t argc)
     return i + countpasses(i);
 }
 
-std::string Merger::mergeonce(size_t argc, stringvec::const_iterator it)
+PartitionPtr Merger::mergeonce(size_t argc, PartitionVec::const_iterator it)
 {
     pass_--;
 
-    std::string outfile = std::tmpnam(nullptr);
+    PartitionPtr output = Partition::makePartition(key_);
+    output->open(std::ios::out);
 
-    close();
-
-    out_.open(outfile);
-    if (!out_.is_open()) {
-        boost::format message = boost::format("unable to open file \"%s\".") % outfile;
-        throw std::exception(message.str().c_str());
-    }
-
-    stringvec::const_iterator save = it;
+    PartitionVec::const_iterator save = it;
 
     mergerec** recs = new mergerec*[argc + 1];
 
     uint32_t i;
     for (i = 0; i < argc; i++, it++) {
         recs[i] = new mergerec;
-        recs[i]->key = 0ULL;
-        recs[i]->stream.open(*it);
-        if (!recs[i]->stream.is_open()) {
-            boost::format message = boost::format("unable to open file \"%s\".") % *it;
-            throw std::exception(message.str().c_str());
-        }
+        recs[i]->stream = it->get();
+        recs[i]->stream->open(std::ios::in);
     }
 
     recs[argc] = NULL;
@@ -90,20 +59,19 @@ std::string Merger::mergeonce(size_t argc, stringvec::const_iterator it)
 
     while (read(list)) {
         list = least(recs);
-        write(list);
+        write(output->stream(), list);
     }
-    
+
     for (i = 0, it = save; i < argc; i++, it++) {
-        recs[i]->stream.close();
+        recs[i]->stream->close();
         delete recs[i];
-        _unlink((*it).c_str());
     }
 
     delete[] recs;
 
-    close();
+    output->close();
 
-    return outfile;
+    return output;
 }
 
 bool Merger::read(mergerec** recs) const
@@ -111,7 +79,7 @@ bool Merger::read(mergerec** recs) const
     for (uint32_t i = 0; recs[i]; i++) {
         if (recs[i]->key == UINT64_MAX)
             return false;
-        if (!(recs[i]->stream >> recs[i]->key))
+        if (!(recs[i]->stream->stream() >> recs[i]->key))
             recs[i]->key = UINT64_MAX;
     }
 
@@ -137,33 +105,33 @@ mergerec** Merger::least(mergerec** recs)
     return array;
 }
 
-bool Merger::write(mergerec** recs)
+bool Merger::write(std::ostream& out, mergerec** recs)
 {
     if (recs[0]->key == UINT64_MAX)
         return false;
 
     std::string event;
     for (auto i = 0; recs[i]; i++) {
-        getline(recs[i]->stream, event);
-        out_ << recs[i]->key << event << endl;
+        getline(recs[i]->stream->stream(), event);
+        out << recs[i]->key << event << endl;
     }
 
     return true;
 }
 
-std::string Merger::mergemany(size_t argc, stringvec::const_iterator it)
+PartitionPtr Merger::mergemany(size_t argc, PartitionVec::const_iterator it)
 {
     if (argc <= NWAY)
         return mergeonce(argc, it);
 
-    stringvec outfiles;
-    outfiles.resize(argc / NWAY + 1);
+    PartitionVec output;
+    output.resize(argc / NWAY + 1);
 
     size_t i = 0, n;
     for (i = 0; argc > 0; it += n, argc -= n) {
         n = std::min(argc, NWAY);
-        outfiles[i++] = mergeonce(n, it);
+        output[i++] = mergeonce(n, it);
     }
 
-    return mergemany(i, outfiles.begin());
+    return mergemany(i, output.begin());
 }

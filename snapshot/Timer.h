@@ -7,12 +7,12 @@ class Timer
 public:
     Timer();
     ~Timer();
-    
+
     std::string str() const;
     void restart();
 private:
-    typedef std::chrono::high_resolution_clock Clock;
-    typedef std::chrono::time_point<std::chrono::steady_clock> time_point;
+    using Clock = std::chrono::high_resolution_clock;
+    using time_point = std::chrono::time_point<std::chrono::steady_clock>;
     time_point start_;
 };
 
