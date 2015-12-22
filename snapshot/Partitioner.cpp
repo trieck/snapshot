@@ -52,6 +52,8 @@ void Partitioner::flush()
 
 void Partitioner::merge()
 {
+    flush();
+
     cout << "merging...";
 
     for (auto& pair : partitions_) {

@@ -25,7 +25,7 @@ void Snapshotter::snapshot(const char* file)
         reader.parse(line, event, false);
         insert(event);
     }
-
+    
     merge();
 }
 
