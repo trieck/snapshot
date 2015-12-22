@@ -88,8 +88,7 @@ PartitionVec& Partitioner::getPartitions(const std::string& key)
     auto it = partitions_.find(key);
     if (it == partitions_.end()) {
         return partitions_[key] = PartitionVec();
-    }
-    else {
+    } else {
         return (*it).second;
     }
 }
@@ -101,8 +100,7 @@ Partitioner::EventVec& Partitioner::lookup(const Event& event)
     auto it = map_.find(key);
     if (it == map_.end()) {
         return map_[key] = EventVec();
-    }
-    else {
+    } else {
         return (*it).second;
     }
 }
