@@ -4,3 +4,8 @@
 *.pdb
 *.sdf
 *.opendb
+*.json
+ipch/
+x64/
+Debug/
+Release/
