@@ -11,8 +11,11 @@ public:
 
     void snapshot(const char* file);
 private:
+    void partition(const char* file);
     void insert(const Event& event);
-    void index();
+    void mktrees();
+    void mktree(const PartitionPtr& partition);
 
     Partitioner partitioner_;
+    PartitionVec partitions_;   // merged set
 };

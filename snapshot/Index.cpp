@@ -13,7 +13,7 @@
 #define SET_BUCKET_PAGE(p)	(p->header.flags &= ~PTF_DATA)
 #define PAGENO(p)		    (p->header.pageno)
 
-// maximum number of buckets on a page
+// number of buckets on a page
 constexpr auto BUCKETS_PER_PAGE = ((BlockIO::BLOCK_SIZE - sizeof(PageHeader)) / sizeof(Bucket));
 
 Index::Index() : buckets_(0)
@@ -43,10 +43,6 @@ void Index::open(const char* filename, OpenMode mode, uint32_t entries)
 void Index::close()
 {
     io_.close();
-}
-
-void Index::index(Partition* partition)
-{
 }
 
 void Index::mktable()

@@ -151,6 +151,7 @@
     <ClInclude Include="Primes.h" />
     <ClInclude Include="radixsort.h" />
     <ClInclude Include="Snapshotter.h" />
+    <ClInclude Include="SnapshotTree.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="string_utils.h" />
     <ClInclude Include="targetver.h" />
@@ -174,6 +175,7 @@
     <ClCompile Include="Primes.cpp" />
     <ClCompile Include="snapshot.cpp" />
     <ClCompile Include="Snapshotter.cpp" />
+    <ClCompile Include="SnapshotTree.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

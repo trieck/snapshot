@@ -20,6 +20,7 @@
 #include <fstream>
 #include <cstring>
 #include <unordered_map>
+#include <iterator>
 
 #ifdef _MSC_VER
 #include <boost/config/compiler/visualc.hpp>

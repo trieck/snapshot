@@ -1,7 +1,6 @@
 #pragma once
 
 #include "BlockIO.h"
-#include "Partition.h"
 
 constexpr auto MAX_KEY_LEN = 40;
 
@@ -43,7 +42,6 @@ public:
         OpenMode mode = std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc,
         uint32_t entries = DEFAULT_ENTRIES);
     void close();
-    void index(Partition* partition);
 private:
     void mktable();
     void* mkblock();

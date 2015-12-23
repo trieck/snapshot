@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Snapshotter.h"
-#include "Index.h"
+#include "SnapshotTree.h"
 
 Snapshotter::Snapshotter()
 {
@@ -11,6 +11,12 @@ Snapshotter::~Snapshotter()
 }
 
 void Snapshotter::snapshot(const char* file)
+{
+    partition(file);
+    mktrees();
+}
+
+void Snapshotter::partition(const char* file)
 {
     std::ifstream stream(file);
     if (!stream.is_open()) {
@@ -27,7 +33,7 @@ void Snapshotter::snapshot(const char* file)
         insert(event);
     }
 
-    index();
+    partitions_ = partitioner_.merge();
 }
 
 void Snapshotter::insert(const Event& event)
@@ -38,14 +44,15 @@ void Snapshotter::insert(const Event& event)
     }
 }
 
-void Snapshotter::index()
+void Snapshotter::mktrees()
 {
-    PartitionVec partitions = partitioner_.merge();
-
-    for (const auto& partition : partitions) {
-        Index index;
-        index.open(std::tmpnam(nullptr));
-        index.index(partition.get());
-        index.close();
+    for (const auto& partition : partitions_) {
+        mktree(partition);
     }
+}
+
+void Snapshotter::mktree(const PartitionPtr& partition)
+{
+    SnapshotTree tree;
+    tree.load(partition->stream());
 }
