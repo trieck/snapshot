@@ -1,8 +1,9 @@
 #pragma once
 
 #include "BlockIO.h"
+#include "Event.h"
 
-constexpr auto MAX_KEY_LEN = 40;
+constexpr size_t MAX_KEY_LEN = 40UL;
 
 // ensure one byte alignment for structures below
 #pragma pack (push, 1)
@@ -42,14 +43,16 @@ public:
         OpenMode mode = std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc,
         uint32_t entries = DEFAULT_ENTRIES);
     void close();
+    bool insert(const Event& event);
 private:
     void mktable();
     void* mkblock();
     void freeblock(void* block);
+    uint64_t hash(const Event& event);
 
     static constexpr auto DEFAULT_ENTRIES = 10000UL;
 
     BlockIO io_;            // block i/o
-    uint64_t buckets_;      // bucket count
+    uint64_t tablesize_;    // size of hash table
     LPBUCKETPAGE bpage_;    // bucket page
 };

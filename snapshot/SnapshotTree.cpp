@@ -33,4 +33,13 @@ void SnapshotTree::load(Partition* partition)
 
 void SnapshotTree::process(const Event& event)
 {
+    auto name = event["EVENT_NAME"].asString();
+    if (name == "Created") {
+        insert(event);
+    }
+}
+
+void SnapshotTree::insert(const Event& event)
+{
+    index_.insert(event);
 }

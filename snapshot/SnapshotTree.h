@@ -13,6 +13,7 @@ public:
     void process(const Event& event);
 
 private:
+    void insert(const Event& event);
     Index index_;
 };
 

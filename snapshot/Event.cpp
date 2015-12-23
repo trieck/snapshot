@@ -3,8 +3,9 @@
 
 Event::Event(const Json::Value& event) : event_(event)
 {
+    parseMeta(); 
     sequence_ = (*this)["EVENT_SEQUENCE_NUMBER"].asUInt64();
-    parseMeta();
+    objectId_ = getMeta("ObjectId").asString();
 }
 
 Event::~Event()
@@ -53,4 +54,9 @@ const Json::Value & Event::getEvent() const
 uint64_t Event::getSequenceNumber() const
 {
     return sequence_;
+}
+
+std::string Event::getObjectId() const
+{
+    return objectId_;
 }
