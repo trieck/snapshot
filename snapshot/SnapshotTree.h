@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Index.h"
+#include "Partition.h"
 
 class SnapshotTree
 {
@@ -8,7 +9,7 @@ public:
     SnapshotTree();
     ~SnapshotTree();
 
-    void load(std::istream& stream);
+    void load(Partition* partition);
 
     void process(const std::string& objectId, const std::string& event);
 

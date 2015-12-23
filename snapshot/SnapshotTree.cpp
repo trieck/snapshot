@@ -11,8 +11,11 @@ SnapshotTree::~SnapshotTree()
     index_.close();
 }
 
-void SnapshotTree::load(std::istream& stream)
+void SnapshotTree::load(Partition* partition)
 {
+    partition->open(std::ios::in);
+    std::istream& stream = partition->stream();
+
     uint64_t key;
     std::string objectId, event;
     while (stream >> key) {
@@ -21,6 +24,8 @@ void SnapshotTree::load(std::istream& stream)
         getline(stream, event);
         process(objectId, event);
     }
+
+    partition->close();
 }
 
 void SnapshotTree::process(const std::string& objectId, const std::string& event)

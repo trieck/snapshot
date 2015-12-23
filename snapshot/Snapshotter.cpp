@@ -54,5 +54,5 @@ void Snapshotter::mktrees()
 void Snapshotter::mktree(const PartitionPtr& partition)
 {
     SnapshotTree tree;
-    tree.load(partition->stream());
+    tree.load(partition.get());
 }
