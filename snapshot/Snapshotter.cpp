@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Snapshotter.h"
+#include "Index.h"
 
 Snapshotter::Snapshotter()
 {
@@ -26,7 +27,7 @@ void Snapshotter::snapshot(const char* file)
         insert(event);
     }
 
-    merge();
+    index();
 }
 
 void Snapshotter::insert(const Event& event)
@@ -37,7 +38,14 @@ void Snapshotter::insert(const Event& event)
     }
 }
 
-void Snapshotter::merge()
+void Snapshotter::index()
 {
-    PartitionVec partitions = partitioner_.merge();    
+    PartitionVec partitions = partitioner_.merge();
+
+    for (const auto& partition : partitions) {
+        Index index;
+        index.open(std::tmpnam(nullptr));
+        index.index(partition.get());
+        index.close();
+    }
 }

@@ -1,13 +1,6 @@
-// snapshot.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 #include "Snapshotter.h"
 #include "Timer.h"
-
-using std::cout;
-using std::cerr;
-using std::endl;
 
 int main(int argc, char* argv[])
 {
@@ -21,8 +14,7 @@ int main(int argc, char* argv[])
     Snapshotter snapshotter;
     try {
         snapshotter.snapshot(argv[1]);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         cerr << e.what() << endl;
         exit(1);
     }

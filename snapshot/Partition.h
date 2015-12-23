@@ -4,7 +4,6 @@
 
 class Partition;
 using PartitionPtr = std::unique_ptr<Partition>;
-using OpenMode = std::ios::openmode;
 
 class Partition
 {

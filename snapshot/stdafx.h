@@ -33,5 +33,6 @@ using std::cerr;
 using std::endl;
 
 using stringvec = std::vector<std::string>;
+using OpenMode = std::ios::openmode;
 
 #include "util.h"

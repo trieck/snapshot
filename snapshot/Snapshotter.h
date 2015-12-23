@@ -12,7 +12,7 @@ public:
     void snapshot(const char* file);
 private:
     void insert(const Event& event);
-    void merge();
+    void index();
 
     Partitioner partitioner_;
 };

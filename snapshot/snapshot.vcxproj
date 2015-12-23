@@ -140,8 +140,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BlockIO.h" />
+    <ClInclude Include="DoubleHash.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="EventWriter.h" />
+    <ClInclude Include="Index.h" />
     <ClInclude Include="Merger.h" />
     <ClInclude Include="Partition.h" />
     <ClInclude Include="Partitioner.h" />
@@ -155,8 +158,10 @@
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BlockIO.cpp" />
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="EventWriter.cpp" />
+    <ClCompile Include="Index.cpp" />
     <ClCompile Include="jsoncpp.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
