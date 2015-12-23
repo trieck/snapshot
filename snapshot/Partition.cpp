@@ -42,7 +42,6 @@ void Partition::write(const std::vector<Event>& vec)
     EventWriter writer;
     for (const auto& event : vec) {
         stream_ << event.getSequenceNumber() << '\t';
-        stream_ << event.getMeta("ObjectId").asCString() << '\t';
         writer.write(stream_, event);
         stream_ << endl;
     }

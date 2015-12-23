@@ -16,18 +16,21 @@ void SnapshotTree::load(Partition* partition)
     partition->open(std::ios::in);
     std::istream& stream = partition->stream();
 
+    Json::Reader reader;
+    Json::Value event;
+
     uint64_t key;
-    std::string objectId, event;
+    std::string line;
     while (stream >> key) {
-        stream >> objectId;
         stream.rdbuf()->sbumpc();   // tab
-        getline(stream, event);
-        process(objectId, event);
+        getline(stream, line);
+        reader.parse(line, event, false);
+        process(event);
     }
 
     partition->close();
 }
 
-void SnapshotTree::process(const std::string& objectId, const std::string& event)
+void SnapshotTree::process(const Event& event)
 {
 }
