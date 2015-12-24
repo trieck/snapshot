@@ -48,6 +48,9 @@ private:
     void* mkblock();
     void freeblock(void* block);
     uint64_t hash(const Event& event);
+    std::string getKey(uint64_t bucket);
+    uint32_t keyLength(uint64_t bucket);
+    void setKey(uint64_t bucket, const Event& event);
     bool writeValue(const Event& event, uint32_t& written, uint64_t& offset);
     bool writeValue(const char* pval, int length, uint64_t& offset);
     void newpage();

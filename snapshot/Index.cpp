@@ -52,6 +52,9 @@ void Index::close()
 
 bool Index::insert(const Event& event)
 {
+    uint32_t written;
+    uint64_t offset;
+
     auto h = hash(event);
     auto pageno = h / BUCKETS_PER_PAGE;
     auto bucket = h % BUCKETS_PER_PAGE;
@@ -59,13 +62,18 @@ bool Index::insert(const Event& event)
     if (!io_.readblock(pageno, bpage_))
         return false;
 
-    auto objectId = event.getObjectId();
+    for (;;) {
+       if (keyLength(bucket) == 0)
+            break;
 
-    auto length = std::min(objectId.length(), MAX_KEY_LEN);
-    memcpy(BUCKET_KEY(bpage_, bucket), objectId.c_str(), length);
+        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
+            pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE);
+            if (!io_.readblock(pageno, bpage_))
+                return false;
+        }
+    }
 
-    uint32_t written;
-    uint64_t offset;
+    setKey(bucket, event);
     if (!writeValue(event, written, offset))
         return false;
 
@@ -73,6 +81,41 @@ bool Index::insert(const Event& event)
     BUCKET_OFFSET(bpage_, bucket) = offset;
 
     return io_.writeblock(pageno, bpage_);
+}
+
+std::string Index::getKey(uint64_t bucket)
+{
+    std::ostringstream ss;
+
+    auto key = *BUCKET_KEY(bpage_, bucket);
+    for (auto i = 0; i < MAX_KEY_LEN; ++i) {
+        if (key[i] == '\0')
+            break;
+        ss << key[i];
+    }
+
+    return ss.str();
+}
+
+uint32_t Index::keyLength(uint64_t bucket)
+{
+    uint32_t length = 0;
+
+    auto key = *BUCKET_KEY(bpage_, bucket);
+    for (auto i = 0; i < MAX_KEY_LEN; ++i) {
+        if (key[i] == '\0')
+            break;
+        length++;
+    }
+
+    return length;
+}
+
+void Index::setKey(uint64_t bucket, const Event& event)
+{
+    auto objectId = event.getObjectId();
+    auto length = std::min(objectId.length(), MAX_KEY_LEN);
+    memcpy(BUCKET_KEY(bpage_, bucket), objectId.c_str(), length);
 }
 
 void Index::mktable()
@@ -135,8 +178,7 @@ bool Index::writeValue(const char* pval, int length, uint64_t& offset)
         newpage();
     }
 
-    auto start_page = pageno_;
-    auto start_offset = offset_;
+    offset = pageno_ * BlockIO::BLOCK_SIZE + sizeof(PageHeader) + offset_;
 
     while (length > 0) {
         auto avail = available();
@@ -160,9 +202,6 @@ bool Index::writeValue(const char* pval, int length, uint64_t& offset)
 
         length -= save;
     }
-
-    // offset to beginning of value
-    offset = start_page * BlockIO::BLOCK_SIZE + sizeof(PageHeader) + start_offset;
 
     return true;
 }
