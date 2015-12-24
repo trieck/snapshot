@@ -12,9 +12,10 @@ public:
     void snapshot(const char* file);
 private:
     void partition(const char* file);
+    void merge();
     void insert(const Event& event);
-    void mktrees();
-    void mktree(const PartitionPtr& partition);
+    void load();
+    void load(const PartitionPtr& partition);
 
     Partitioner partitioner_;
     PartitionVec partitions_;   // merged set

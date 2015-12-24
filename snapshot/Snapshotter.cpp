@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Snapshotter.h"
 #include "SnapshotTree.h"
+#include "Timer.h"
 
 Snapshotter::Snapshotter()
 {
@@ -13,11 +14,15 @@ Snapshotter::~Snapshotter()
 void Snapshotter::snapshot(const char* file)
 {
     partition(file);
-    mktrees();
+    merge();
+    load();
 }
 
 void Snapshotter::partition(const char* file)
 {
+    Timer timer;
+    cout << "partitioning...";
+
     std::ifstream stream(file);
     if (!stream.is_open()) {
         boost::format message = boost::format("unable to open file \"%s\".") % file;
@@ -33,7 +38,17 @@ void Snapshotter::partition(const char* file)
         insert(event);
     }
 
+    cout << "complete (" << timer << ")" << endl;
+}
+
+void Snapshotter::merge()
+{
+    Timer timer;
+    cout << "merging...";
+
     partitions_ = partitioner_.merge();
+
+    cout << "complete (" << timer << ")" << endl;
 }
 
 void Snapshotter::insert(const Event& event)
@@ -44,14 +59,19 @@ void Snapshotter::insert(const Event& event)
     }
 }
 
-void Snapshotter::mktrees()
+void Snapshotter::load()
 {
+    Timer timer;
+    cout << "loading...";
+
     for (const auto& partition : partitions_) {
-        mktree(partition);
+        load(partition);
     }
+
+    cout << "complete (" << timer << ")" << endl;
 }
 
-void Snapshotter::mktree(const PartitionPtr& partition)
+void Snapshotter::load(const PartitionPtr& partition)
 {
     SnapshotTree tree;
     tree.load(partition.get());

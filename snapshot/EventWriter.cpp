@@ -13,5 +13,10 @@ EventWriter::~EventWriter()
 
 void EventWriter::write(std::ostream& os, const Event& event)
 {
-    os << Json::writeString(builder_, event.getEvent());
+    os << write(event);
+}
+
+std::string EventWriter::write(const Event& event)
+{
+    return Json::writeString(builder_, event.getEvent());;
 }
