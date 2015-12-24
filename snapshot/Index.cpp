@@ -101,59 +101,50 @@ uint64_t Index::hash(const Event& event)
 
 bool Index::writeValue(const Event& event, uint32_t& written, uint64_t& offset)
 {
-    if (pageno_ == 0) { // make new data page
-        pageno_ = tablesize_ / BUCKETS_PER_PAGE;
-    }
-
     auto value = writer_.write(event);
-    auto pval = value.c_str();
+    auto length = static_cast<int>(value.length());
 
-    auto avail = BlockIO::BLOCK_SIZE - sizeof(PageHeader) - offset_;
-    if (avail == 0) {   // full page
-        memset(dpage_, 0, BlockIO::BLOCK_SIZE);
-        pageno_++;
-        offset_ = 0;
-        avail = BlockIO::BLOCK_SIZE - sizeof(PageHeader);
-    }
-
-    SET_DATA_PAGE(dpage_);
-
-    auto length = static_cast<int>(std::min(value.length(), avail));
-    auto start = offset_;
-
-    auto ptr = DATA_PTR(dpage_, offset_);
-    while (length > 0) {
-        *ptr++ = *pval++;
-        length--;
-        offset_++;
-    }
-
-    if (!io_.writeblock(pageno_, dpage_))
+    if (!writeValue(value.c_str(), length, offset))
         return false;
 
-    // offset to beginning of value
-    offset = pageno_ * BlockIO::BLOCK_SIZE + sizeof(PageHeader) + start;
-
-    if (avail < value.length()) {   // full page
-        length = static_cast<int>(value.length() - avail);
-        if (!(spill(pval, length)))
-            return false;
-    }
-
-    written = static_cast<uint32_t>(value.length());
+    written = length;
 
     return true;
 }
 
-bool Index::spill(const char* pval, int length)
+void Index::newpage()
 {
-    while (length > 0) {
-        memset(dpage_, 0, BlockIO::BLOCK_SIZE);
-        SET_DATA_PAGE(dpage_);
-        pageno_++;
-        offset_ = 0;
+    memset(dpage_, 0, BlockIO::BLOCK_SIZE);
+    SET_DATA_PAGE(dpage_);
+    pageno_++;
+    offset_ = 0;
+}
 
-        auto avail = static_cast<int>(BlockIO::BLOCK_SIZE - sizeof(PageHeader));
+int Index::available() const
+{
+    return static_cast<int>(BlockIO::BLOCK_SIZE - sizeof(PageHeader) - offset_);
+}
+
+bool Index::writeValue(const char* pval, int length, uint64_t& offset)
+{
+    if (pageno_ == 0) { // first data page
+        pageno_ = tablesize_ / BUCKETS_PER_PAGE;
+    }
+
+    if (available() == 0) {
+        newpage();
+    }
+
+    auto start_page = pageno_;
+    auto start_offset = offset_;
+
+    while (length > 0) {
+        auto avail = available();
+        if (avail == 0) {   // full page
+            newpage();
+            avail = BlockIO::BLOCK_SIZE - sizeof(PageHeader);
+        }
+
         auto nlength = std::min(length, avail);
         auto save = nlength;
 
@@ -169,6 +160,9 @@ bool Index::spill(const char* pval, int length)
 
         length -= save;
     }
+
+    // offset to beginning of value
+    offset = start_page * BlockIO::BLOCK_SIZE + sizeof(PageHeader) + start_offset;
 
     return true;
 }

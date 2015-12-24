@@ -49,7 +49,9 @@ private:
     void freeblock(void* block);
     uint64_t hash(const Event& event);
     bool writeValue(const Event& event, uint32_t& written, uint64_t& offset);
-    bool spill(const char* pval, int length);
+    bool writeValue(const char* pval, int length, uint64_t& offset);
+    void newpage();
+    int available() const;
 
     static constexpr auto DEFAULT_ENTRIES = 10000UL;
 
