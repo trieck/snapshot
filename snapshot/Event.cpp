@@ -3,13 +3,29 @@
 
 Event::Event(const Json::Value& event) : event_(event)
 {
-    parseMeta(); 
+    parseMeta();
     sequence_ = (*this)["EVENT_SEQUENCE_NUMBER"].asUInt64();
     objectId_ = getMeta("ObjectId").asString();
 }
 
+Event::Event(const Event & rhs)
+{
+    *this = rhs;
+}
+
 Event::~Event()
 {
+}
+
+Event & Event::operator=(const Event & rhs)
+{
+    if (this != &rhs) {
+        event_ = rhs.event_;
+        meta_ = rhs.meta_;
+        objectId_ = rhs.objectId_;
+        sequence_ = rhs.sequence_;
+    }
+    return *this;
 }
 
 const Json::Value& Event::operator[](const char* key) const
@@ -32,14 +48,14 @@ void Event::parseMeta()
     for (unsigned i = 0; i < size; ++i) {
         name = meta[i]["METADATA_NAME"].asString();
         Json::Value value = meta[i]["METADATA_VALUE"];
-        _meta.insert(std::pair<std::string, Json::Value>{name, value});
+        meta_.insert(std::pair<std::string, Json::Value>{name, value});
     }
 }
 
 const Json::Value& Event::getMeta(const char* key) const
 {
-    auto it = _meta.find(key);
-    if (it == _meta.end()) {
+    auto it = meta_.find(key);
+    if (it == meta_.end()) {
         return Json::Value::nullRef;
     }
 
