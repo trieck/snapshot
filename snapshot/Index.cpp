@@ -8,6 +8,7 @@
 #define BUCKET_VAL_LEN(p, b)    (p->buckets[b].len)
 #define BUCKET_OFFSET(p, b)     (p->buckets[b].offset)
 #define DATA_PTR(p, o)          (&(p->data[o]))
+#define DELETED(p, b)           (p->buckets[b].deleted)
 
 // number of buckets on a page
 constexpr auto BUCKETS_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Bucket);
@@ -80,35 +81,32 @@ bool Index::insert(const Event& event)
 
 bool Index::lookup(const std::string& key, std::string& value)
 {
-    auto h = hash(key);
-    auto pageno = h / BUCKETS_PER_PAGE;
-    auto bucket = h % BUCKETS_PER_PAGE;
-
     value.clear();
 
-    if (!io_.readblock(pageno, bpage_))
+    uint64_t pageno, bucket;
+    if (!getBucket(key, pageno, bucket))
         return false;
 
-    std::string K;
-    for (;;) {
-        K = getKey(bucket);
-        if (K.length() == 0)
-            return false;   // no hit
-
-        if (K == key)
-            break;  // hit
-
-        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE);
-            if (!io_.readblock(pageno, bpage_))
-                return false;
-        }
-    }
+    if (DELETED(bpage_, bucket))
+        return false;
 
     auto offset = BUCKET_OFFSET(bpage_, bucket);
     auto length = BUCKET_VAL_LEN(bpage_, bucket);
 
     return readVal(offset, length, value);
+}
+
+bool Index::destroy(const Event& event)
+{
+    auto key = event.getObjectId();
+
+    uint64_t pageno, bucket;
+    if (!getBucket(key, pageno, bucket))
+        return false;
+
+    DELETED(bpage_, bucket) = 1;
+
+    return io_.writeblock(pageno, bpage_);
 }
 
 std::string Index::getKey(uint64_t bucket)
@@ -196,6 +194,34 @@ void Index::newpage()
 int Index::available() const
 {
     return static_cast<int>(BlockIO::BLOCK_SIZE - offset_);
+}
+
+bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket)
+{
+    auto h = hash(key);
+    pageno = h / BUCKETS_PER_PAGE;
+    bucket = h % BUCKETS_PER_PAGE;
+
+    if (!io_.readblock(pageno, bpage_))
+        return false;
+
+    std::string K;
+    for (;;) {
+        K = getKey(bucket);
+        if (K.length() == 0)
+            return false;   // no hit
+
+        if (K == key)
+            break;  // hit
+
+        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {
+            pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE); // next page
+            if (!io_.readblock(pageno, bpage_))
+                return false;
+        }
+    }
+
+    return true;
 }
 
 bool Index::writeValue(const char* pval, int length, uint64_t& offset)

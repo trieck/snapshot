@@ -11,6 +11,7 @@ constexpr size_t MAX_KEY_LEN = 40UL;
 
 typedef struct Bucket {
     char key[MAX_KEY_LEN];  // bucket key
+    uint8_t deleted;        // deleted flag
     uint32_t len;           // value length
     uint64_t offset;        // offset to data page where value begins
 } *LPBUCKET;
@@ -38,6 +39,7 @@ public:
     void close();
     bool insert(const Event& event);
     bool lookup(const std::string& key, std::string& value);
+    bool destroy(const Event& event);
 private:
     void mktable();
     void* mkblock();
@@ -52,6 +54,7 @@ private:
     bool readVal(uint64_t offset, int length, std::string& value);
     void newpage();
     int available() const;
+    bool getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket);
 
     static constexpr auto DEFAULT_ENTRIES = 10000UL;
 

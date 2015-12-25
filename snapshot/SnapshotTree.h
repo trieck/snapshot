@@ -14,6 +14,7 @@ public:
 
 private:
     void insert(const Event& event);
+    void destroy(const Event& event);
     Index index_;
 };
 
