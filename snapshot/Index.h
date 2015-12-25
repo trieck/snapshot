@@ -48,12 +48,13 @@ private:
     uint64_t hash(const std::string& s);
     std::string getKey(uint64_t bucket);
     uint32_t keyLength(uint64_t bucket);
-    void setKey(uint64_t bucket, const Event& event);
+    void setKey(uint64_t bucket, const std::string& key);
     bool writeValue(const Event& event, uint32_t& written, uint64_t& offset);
     bool writeValue(const char* pval, int length, uint64_t& offset);
     bool readVal(uint64_t offset, int length, std::string& value);
     void newpage();
     int available() const;
+    bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     bool getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket);
 
     static constexpr auto DEFAULT_ENTRIES = 10000UL;

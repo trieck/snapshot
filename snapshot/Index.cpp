@@ -48,25 +48,13 @@ void Index::close()
 
 bool Index::insert(const Event& event)
 {
-    auto h = hash(event);
-    auto pageno = h / BUCKETS_PER_PAGE;
-    auto bucket = h % BUCKETS_PER_PAGE;
+    uint64_t pageno, bucket;
+    auto key = event.getObjectId();
 
-    if (!io_.readblock(pageno, bpage_))
+    if (!findSlot(key, pageno, bucket))
         return false;
 
-    for (;;) {
-        if (keyLength(bucket) == 0)
-            break;
-
-        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE);
-            if (!io_.readblock(pageno, bpage_))
-                return false;
-        }
-    }
-
-    setKey(bucket, event);
+    setKey(bucket, key);
 
     uint32_t written;
     uint64_t offset;
@@ -137,11 +125,10 @@ uint32_t Index::keyLength(uint64_t bucket)
     return length;
 }
 
-void Index::setKey(uint64_t bucket, const Event& event)
+void Index::setKey(uint64_t bucket, const std::string& key)
 {
-    auto objectId = event.getObjectId();
-    auto length = std::min(objectId.length(), MAX_KEY_LEN);
-    memcpy(BUCKET_KEY(bpage_, bucket), objectId.c_str(), length);
+    auto length = std::min(key.length(), MAX_KEY_LEN);
+    memcpy(BUCKET_KEY(bpage_, bucket), key.c_str(), length);
 }
 
 void Index::mktable()
@@ -194,6 +181,34 @@ void Index::newpage()
 int Index::available() const
 {
     return static_cast<int>(BlockIO::BLOCK_SIZE - offset_);
+}
+
+bool Index::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
+{
+    auto h = hash(key);
+    pageno = h / BUCKETS_PER_PAGE;
+    bucket = h % BUCKETS_PER_PAGE;
+
+    if (!io_.readblock(pageno, bpage_))
+        return false;
+
+    std::string K;
+    for (;;) {
+        K = getKey(bucket);
+        if (K.length() == 0)
+            break;  // empty slot
+
+        if (K == key)
+            return false;  // already exists
+
+        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
+            pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE);
+            if (!io_.readblock(pageno, bpage_))
+                return false;
+        }
+    }
+
+    return true;
 }
 
 bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket)
