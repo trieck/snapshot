@@ -41,6 +41,10 @@ public:
     bool lookup(const std::string& key, std::string& value);
     bool destroy(const Event& event);
     bool update(const Event& event);
+    uint64_t filesize();
+    uint64_t tablesize() const;
+    float fillfactor();
+    uint64_t maxrun();
 private:
     void mktable();
     void* mkblock();

@@ -16,7 +16,7 @@ void BlockIO::open(const char* filename, OpenMode mode)
     stream_.open(filename, mode | std::ios::binary);
     if (!stream_.is_open()) {
         boost::format message = boost::format("unable to open file \"%s\".") % filename;
-        throw std::iostream::failure(message.str().c_str());
+        throw std::exception(message.str().c_str());
     }
 }
 
@@ -31,21 +31,21 @@ void BlockIO::readblock(uint64_t blockno, void* pv)
 {
     seekblock(blockno);
     if (!stream_.read(static_cast<char*>(pv), BLOCK_SIZE))
-        throw std::iostream::failure("cannot read block.");
+        throw std::exception("cannot read block.");
 }
 
 void BlockIO::writeblock(uint64_t blockno, const void* pv)
 {
     seekblock(blockno);
     if (!stream_.write(static_cast<const char*>(pv), BLOCK_SIZE))
-        throw std::iostream::failure("cannot write block.");
+        throw std::exception("cannot write block.");
 }
 
 void BlockIO::seekblock(uint64_t blockno)
 {
     auto offset = blockno * BLOCK_SIZE;
     if (!stream_.seekp(offset, std::ios::beg))
-        throw std::iostream::failure("cannot seek block.");
+        throw std::exception("cannot seek block.");
 }
 
 uint64_t BlockIO::tell()

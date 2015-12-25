@@ -34,7 +34,6 @@ void Index::open(const char* filename, OpenMode mode, uint32_t entries)
 
     tablesize_ = Primes::prime(entries);
 
-    mode |= std::ios::binary;
     auto create = (mode & std::ios::out) != 0;
     if (create) mode |= std::ios::trunc;  // truncate on create
     io_.open(filename, mode);
@@ -324,4 +323,60 @@ void Index::readVal(uint64_t offset, int length, std::string& value)
     }
 
     value = ss.str();
+}
+
+uint64_t Index::filesize()
+{
+    return io_.getFileSize();
+}
+
+uint64_t Index::tablesize() const
+{
+    return tablesize_;
+}
+
+float Index::fillfactor()
+{
+    auto filled = 0;
+
+    uint64_t bucket = 0, pageno = 0;
+    io_.readblock(pageno, bpage_);
+
+    for (;;) {
+        if (keyLength(bucket) != 0)
+            filled++;
+
+        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
+            if ((pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE)) == 0)
+                break;  // wrapped
+
+            io_.readblock(pageno, bpage_);
+        }
+    }
+
+    return 100 * (filled / static_cast<float>(tablesize_));
+}
+
+uint64_t Index::maxrun()
+{
+    uint64_t run = 0, maxrun = 0;
+    uint64_t bucket = 0, pageno = 0;
+    
+    io_.readblock(pageno, bpage_);
+
+    for (;;) {
+        if (keyLength(bucket) == 0)
+            run = 0;
+        else
+            maxrun = std::max(maxrun, ++run);
+
+        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
+            if ((pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE)) == 0)
+                break;  // wrapped
+
+            io_.readblock(pageno, bpage_);
+        }
+    }
+
+    return maxrun;
 }
