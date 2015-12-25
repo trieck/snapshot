@@ -21,45 +21,12 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Snapshotter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Primes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Partitioner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Partition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Merger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SnapshotTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="snapshot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Snapshotter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Partitioner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Partition.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Merger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SnapshotTree.cpp">
+    <ClCompile Include="chkidx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

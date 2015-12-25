@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "snapshotlib.h"
 #include "string_utils.h"
 
 namespace string_utils {

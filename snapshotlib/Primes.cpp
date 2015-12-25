@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "snapshotlib.h"
 #include "Primes.h"
 
 namespace {

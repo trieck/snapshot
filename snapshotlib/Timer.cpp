@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "snapshotlib.h"
 #include "Timer.h"
 
 Timer::Timer()
@@ -8,7 +8,6 @@ Timer::Timer()
 
 Timer::~Timer()
 {
-
 }
 
 std::string Timer::str() const

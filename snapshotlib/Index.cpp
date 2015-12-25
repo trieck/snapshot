@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "snapshotlib.h"
 #include "Index.h"
 #include "Primes.h"
 #include "DoubleHash.h"

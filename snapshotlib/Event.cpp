@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "snapshotlib.h"
 #include "Event.h"
 
 Event::Event(const Json::Value& event) : event_(event)

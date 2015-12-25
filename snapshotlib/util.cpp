@@ -1,5 +1,4 @@
-#include "stdafx.h"
-
+#include "snapshotlib.h"
 #include <boost/uuid/sha1.hpp>
 
 std::string sha1(const std::string input)
