@@ -38,6 +38,8 @@ void SnapshotTree::process(const Event& event)
         insert(event);
     } else if (name == "Destroyed") {
         destroy(event);
+    } else {
+        update(event);
     }
 }
 
@@ -49,4 +51,9 @@ void SnapshotTree::insert(const Event& event)
 void SnapshotTree::destroy(const Event& event)
 {
     index_.destroy(event);
+}
+
+void SnapshotTree::update(const Event& event)
+{
+    index_.update(event);
 }

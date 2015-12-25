@@ -48,9 +48,9 @@ void Index::close()
 
 bool Index::insert(const Event& event)
 {
-    uint64_t pageno, bucket;
     auto key = event.getObjectId();
 
+    uint64_t pageno, bucket;
     if (!findSlot(key, pageno, bucket))
         return false;
 
@@ -93,6 +93,25 @@ bool Index::destroy(const Event& event)
         return false;
 
     DELETED(bpage_, bucket) = 1;
+
+    return io_.writeblock(pageno, bpage_);
+}
+
+bool Index::update(const Event& event)
+{
+    auto key = event.getObjectId();
+
+    uint64_t pageno, bucket;
+    if (!getBucket(key, pageno, bucket))
+        return false;
+
+    uint32_t written;
+    uint64_t offset;
+    if (!writeValue(event, written, offset))
+        return false;
+
+    BUCKET_VAL_LEN(bpage_, bucket) = written;
+    BUCKET_OFFSET(bpage_, bucket) = offset;
 
     return io_.writeblock(pageno, bpage_);
 }

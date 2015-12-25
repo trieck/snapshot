@@ -40,6 +40,7 @@ public:
     bool insert(const Event& event);
     bool lookup(const std::string& key, std::string& value);
     bool destroy(const Event& event);
+    bool update(const Event& event);
 private:
     void mktable();
     void* mkblock();
