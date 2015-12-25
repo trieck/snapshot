@@ -10,9 +10,9 @@
 
 #include <stdio.h>
 #include <tchar.h>
+
 #include <sstream>
 #include <iostream>
-
 #include <codecvt>
 #include <locale>
 #include <string>
@@ -37,3 +37,4 @@ using stringvec = std::vector<std::string>;
 using OpenMode = std::ios::openmode;
 
 #include "util.h"
+

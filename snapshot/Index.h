@@ -52,7 +52,7 @@ private:
     void setKey(uint64_t bucket, const std::string& key);
     bool writeValue(const Event& event, uint32_t& written, uint64_t& offset);
     bool writeValue(const char* pval, int length, uint64_t& offset);
-    bool readVal(uint64_t offset, int length, std::string& value);
+    void readVal(uint64_t offset, int length, std::string& value);
     void newpage();
     int available() const;
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);

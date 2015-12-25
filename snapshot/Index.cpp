@@ -64,7 +64,9 @@ bool Index::insert(const Event& event)
     BUCKET_VAL_LEN(bpage_, bucket) = written;
     BUCKET_OFFSET(bpage_, bucket) = offset;
 
-    return io_.writeblock(pageno, bpage_);
+    io_.writeblock(pageno, bpage_);
+
+    return true;
 }
 
 bool Index::lookup(const std::string& key, std::string& value)
@@ -81,7 +83,9 @@ bool Index::lookup(const std::string& key, std::string& value)
     auto offset = BUCKET_OFFSET(bpage_, bucket);
     auto length = BUCKET_VAL_LEN(bpage_, bucket);
 
-    return readVal(offset, length, value);
+    readVal(offset, length, value);
+
+    return true;
 }
 
 bool Index::destroy(const Event& event)
@@ -94,7 +98,9 @@ bool Index::destroy(const Event& event)
 
     DELETED(bpage_, bucket) = 1;
 
-    return io_.writeblock(pageno, bpage_);
+    io_.writeblock(pageno, bpage_);
+
+    return true;
 }
 
 bool Index::update(const Event& event)
@@ -113,7 +119,9 @@ bool Index::update(const Event& event)
     BUCKET_VAL_LEN(bpage_, bucket) = written;
     BUCKET_OFFSET(bpage_, bucket) = offset;
 
-    return io_.writeblock(pageno, bpage_);
+    io_.writeblock(pageno, bpage_);
+
+    return true;
 }
 
 std::string Index::getKey(uint64_t bucket)
@@ -208,8 +216,7 @@ bool Index::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
     pageno = h / BUCKETS_PER_PAGE;
     bucket = h % BUCKETS_PER_PAGE;
 
-    if (!io_.readblock(pageno, bpage_))
-        return false;
+    io_.readblock(pageno, bpage_);
 
     std::string K;
     for (;;) {
@@ -222,8 +229,7 @@ bool Index::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
 
         if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
             pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE);
-            if (!io_.readblock(pageno, bpage_))
-                return false;
+            io_.readblock(pageno, bpage_);
         }
     }
 
@@ -236,8 +242,7 @@ bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket
     pageno = h / BUCKETS_PER_PAGE;
     bucket = h % BUCKETS_PER_PAGE;
 
-    if (!io_.readblock(pageno, bpage_))
-        return false;
+    io_.readblock(pageno, bpage_);
 
     std::string K;
     for (;;) {
@@ -250,8 +255,7 @@ bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket
 
         if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {
             pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE); // next page
-            if (!io_.readblock(pageno, bpage_))
-                return false;
+            io_.readblock(pageno, bpage_);
         }
     }
 
@@ -287,16 +291,14 @@ bool Index::writeValue(const char* pval, int length, uint64_t& offset)
             offset_++;
         }
 
-        if (!io_.writeblock(pageno_, dpagew_))
-            return false;
-
+        io_.writeblock(pageno_, dpagew_);
         length -= save;
     }
 
     return true;
 }
 
-bool Index::readVal(uint64_t offset, int length, std::string& value)
+void Index::readVal(uint64_t offset, int length, std::string& value)
 {
     auto pageno = offset / BlockIO::BLOCK_SIZE;
     auto poffset = static_cast<int>(offset % BlockIO::BLOCK_SIZE);
@@ -304,8 +306,7 @@ bool Index::readVal(uint64_t offset, int length, std::string& value)
     std::ostringstream ss;
 
     for (auto read = 0; read < length; ) {
-        if (!io_.readblock(pageno, dpager_))
-            return false;
+        io_.readblock(pageno, dpager_);
 
         auto ptr = DATA_PTR(dpager_, poffset);
 
@@ -323,6 +324,4 @@ bool Index::readVal(uint64_t offset, int length, std::string& value)
     }
 
     value = ss.str();
-
-    return true;
 }

@@ -7,9 +7,9 @@ public:
 
     void open(const char* filename, OpenMode mode);
     void close();
-    bool readblock(uint64_t blockno, void* pv);
-    bool writeblock(uint64_t blockno, const void* pv);
-    bool seekblock(uint64_t blockno);
+    void readblock(uint64_t blockno, void* pv);
+    void writeblock(uint64_t blockno, const void* pv);
+    void seekblock(uint64_t blockno);
 
     uint64_t tell();
     uint64_t getFileSize();

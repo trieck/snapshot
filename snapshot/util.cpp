@@ -21,6 +21,11 @@ std::string sha1(const std::string input)
     return ss.str();
 }
 
+std::string strerror()
+{
+    return ::strerror(errno);
+}
+
 bool getline(std::istream& is, std::string& line)
 {
     constexpr int BUF_SIZE = 4096;

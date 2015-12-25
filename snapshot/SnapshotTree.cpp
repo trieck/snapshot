@@ -55,5 +55,7 @@ void SnapshotTree::destroy(const Event& event)
 
 void SnapshotTree::update(const Event& event)
 {
-    index_.update(event);
+    bool result = index_.update(event);
+    if (!result)
+        index_.insert(event);
 }
