@@ -33,6 +33,7 @@ void Index::open(const char* filename, OpenMode mode, uint32_t entries)
     close();
 
     tablesize_ = Primes::prime(entries);
+    perm_.generate(tablesize_);
 
     auto create = (mode & std::ios::out) != 0;
     if (create) mode |= std::ios::trunc;  // truncate on create

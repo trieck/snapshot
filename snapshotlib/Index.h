@@ -3,6 +3,7 @@
 #include "BlockIO.h"
 #include "Event.h"
 #include "EventWriter.h"
+#include "RandomPerm.h"
 
 constexpr size_t MAX_KEY_LEN = 40UL;
 
@@ -72,4 +73,5 @@ private:
     LPDATAPAGE dpagew_;     // write data page
     LPDATAPAGE dpager_;     // read data page
     EventWriter writer_;    // event writer
+    RandomPerm perm_;       // random permutation for pseudo-random linear probing
 };
