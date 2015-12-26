@@ -27,9 +27,9 @@ std::string Timer::str() const
     if (hours)
         fmt = boost::format("%d:%02d:%02d hours") % hours % minutes % seconds;
     else if (minutes)
-        fmt = boost::format("%02d:%02d minutes") % minutes % seconds;
+        fmt = boost::format("%d:%02d minutes") % minutes % seconds;
     else
-        fmt = boost::format("%02d.%03d seconds") % seconds % millis;
+        fmt = boost::format("%d.%03d seconds") % seconds % millis;
 
     return fmt.str();
 }

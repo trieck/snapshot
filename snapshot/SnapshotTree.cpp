@@ -31,6 +31,15 @@ void SnapshotTree::load(Partition* partition)
     partition->close();
 }
 
+void SnapshotTree::stats()
+{
+    cout << endl << "    Index filename: " << index_.filename() << endl;
+    cout << "    Index file size: " << comma(index_.filesize()) << " bytes" << endl;
+    cout << "    Hash table size: " << comma(index_.tablesize()) << " buckets" << endl;
+    cout << "    Hash table load factor: " << boost::format("%02.2f%%") % index_.loadfactor() << endl;
+    cout << "    Longest run: " << comma(index_.maxrun()) << " buckets" << endl;
+}
+
 void SnapshotTree::process(const Event& event)
 {
     auto name = event["EVENT_NAME"].asString();

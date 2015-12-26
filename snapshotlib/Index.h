@@ -12,7 +12,7 @@ constexpr size_t MAX_KEY_LEN = 40UL;
 
 typedef struct Bucket {
     char key[MAX_KEY_LEN];  // bucket key
-    uint8_t deleted;        // deleted flag
+    uint8_t flags;          // bucket flags
     uint32_t len;           // value length
     uint64_t offset;        // offset to data page where value begins
 } *LPBUCKET;
@@ -34,17 +34,16 @@ public:
     Index();
     ~Index();
 
-    void open(const char* filename,
-        OpenMode mode = std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc,
-        uint32_t entries = DEFAULT_ENTRIES);
+    void open(const char* filename, uint32_t entries = DEFAULT_ENTRIES);
     void close();
+    std::string filename() const;
     bool insert(const Event& event);
     bool lookup(const std::string& key, std::string& value);
     bool destroy(const Event& event);
     bool update(const Event& event);
     uint64_t filesize();
     uint64_t tablesize() const;
-    float fillfactor();
+    float loadfactor();
     uint64_t maxrun();
 private:
     void mktable();
@@ -62,16 +61,21 @@ private:
     int available() const;
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     bool getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket);
+    uint64_t perm(uint64_t i) const;
+    void nextbucket(uint64_t i, uint64_t& bucket, uint64_t& page);
+    uint64_t runLength(const std::string& s);
 
     static constexpr auto DEFAULT_ENTRIES = 10000UL;
 
-    BlockIO io_;            // block i/o
-    uint64_t tablesize_;    // size of hash table
-    uint64_t pageno_;       // current data page while writing
-    uint64_t offset_;       // current offset in data page while writing
-    LPBUCKETPAGE bpage_;    // bucket page
-    LPDATAPAGE dpagew_;     // write data page
-    LPDATAPAGE dpager_;     // read data page
-    EventWriter writer_;    // event writer
-    RandomPerm perm_;       // random permutation for pseudo-random linear probing
+    std::string filename_;      // file name
+    BlockIO io_;                // block i/o
+    uint64_t tablesize_;        // size of hash table
+    uint64_t lastbucketpage_;   // last bucket page
+    uint64_t pageno_;           // current data page while writing
+    uint64_t offset_;           // current offset in data page while writing
+    LPBUCKETPAGE bpage_;        // bucket page
+    LPDATAPAGE dpagew_;         // write data page
+    LPDATAPAGE dpager_;         // read data page
+    EventWriter writer_;        // event writer
+    RandomPerm perm_;           // random permutation for pseudo-random linear probing
 };

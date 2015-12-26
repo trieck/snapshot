@@ -3,17 +3,21 @@
 #include "Primes.h"
 #include "DoubleHash.h"
 
+// bucket flags                 
+#define BF_DELETED              (1 << 0)
+
 // helper macros
 #define BUCKET_KEY(p, b)        (&(p->buckets[b].key))
 #define BUCKET_VAL_LEN(p, b)    (p->buckets[b].len)
 #define BUCKET_OFFSET(p, b)     (p->buckets[b].offset)
 #define DATA_PTR(p, o)          (&(p->data[o]))
-#define DELETED(p, b)           (p->buckets[b].deleted)
+#define ISDELETED(p, b)         (p->buckets[b].flags & BF_DELETED)
+#define SETDELETED(p, b)        (p->buckets[b].flags |= BF_DELETED)
 
 // number of buckets on a page
 constexpr auto BUCKETS_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Bucket);
 
-Index::Index() : tablesize_(0), pageno_(0), offset_(0)
+Index::Index() : tablesize_(0), lastbucketpage_(0), pageno_(0), offset_(0)
 {
     bpage_ = static_cast<LPBUCKETPAGE>(mkblock());
     dpager_ = static_cast<LPDATAPAGE>(mkblock());
@@ -28,22 +32,28 @@ Index::~Index()
     close();
 }
 
-void Index::open(const char* filename, OpenMode mode, uint32_t entries)
+void Index::open(const char* filename, uint32_t entries)
 {
+    filename_ = filename;
+
     close();
 
     tablesize_ = Primes::prime(entries);
-    perm_.generate(tablesize_);
+    perm_.generate(tablesize_ - 1);
+    lastbucketpage_ = tablesize_ / BUCKETS_PER_PAGE;
 
-    auto create = (mode & std::ios::out) != 0;
-    if (create) mode |= std::ios::trunc;  // truncate on create
-    io_.open(filename, mode);
-    if (create) mktable();
+    io_.open(filename, std::ios::in | std::ios::out | std::ios::trunc);
+    mktable();
 }
 
 void Index::close()
 {
     io_.close();
+}
+
+std::string Index::filename() const
+{
+    return filename_;
 }
 
 bool Index::insert(const Event& event)
@@ -77,7 +87,7 @@ bool Index::lookup(const std::string& key, std::string& value)
     if (!getBucket(key, pageno, bucket))
         return false;
 
-    if (DELETED(bpage_, bucket))
+    if (ISDELETED(bpage_, bucket))
         return false;
 
     auto offset = BUCKET_OFFSET(bpage_, bucket);
@@ -96,7 +106,7 @@ bool Index::destroy(const Event& event)
     if (!getBucket(key, pageno, bucket))
         return false;
 
-    DELETED(bpage_, bucket) = 1;
+    SETDELETED(bpage_, bucket) = 1;
 
     io_.writeblock(pageno, bpage_);
 
@@ -219,21 +229,18 @@ bool Index::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
     io_.readblock(pageno, bpage_);
 
     std::string K;
-    for (;;) {
+    for (uint64_t i = 0; i < tablesize_ - 1; ++i) {
         K = getKey(bucket);
         if (K.length() == 0)
-            break;  // empty slot
+            return true;  // empty slot
 
         if (K == key)
             return false;  // already exists
 
-        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE);
-            io_.readblock(pageno, bpage_);
-        }
+        nextbucket(i, bucket, pageno);
     }
 
-    return true;
+    return false;
 }
 
 bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket)
@@ -245,27 +252,24 @@ bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket
     io_.readblock(pageno, bpage_);
 
     std::string K;
-    for (;;) {
+    for (uint64_t i = 0; i < tablesize_ - 1; ++i) {
         K = getKey(bucket);
         if (K.length() == 0)
             return false;   // no hit
 
         if (K == key)
-            break;  // hit
+            return true;  // hit
 
-        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {
-            pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE); // next page
-            io_.readblock(pageno, bpage_);
-        }
+        nextbucket(i, bucket, pageno);
     }
 
-    return true;
+    return false;
 }
 
 bool Index::writeValue(const char* pval, int length, uint64_t& offset)
 {
     if (pageno_ == 0) { // first data page
-        pageno_ = tablesize_ / BUCKETS_PER_PAGE;
+        pageno_ = lastbucketpage_ + 1;
     }
 
     if (available() == 0) {
@@ -336,7 +340,7 @@ uint64_t Index::tablesize() const
     return tablesize_;
 }
 
-float Index::fillfactor()
+float Index::loadfactor()
 {
     auto filled = 0;
 
@@ -348,7 +352,7 @@ float Index::fillfactor()
             filled++;
 
         if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            if ((pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE)) == 0)
+            if ((pageno = (pageno + 1) % (lastbucketpage_ + 1)) == 0)
                 break;  // wrapped
 
             io_.readblock(pageno, bpage_);
@@ -360,19 +364,20 @@ float Index::fillfactor()
 
 uint64_t Index::maxrun()
 {
-    uint64_t run = 0, maxrun = 0;
-    uint64_t bucket = 0, pageno = 0;
-    
+    uint64_t maxrun = 0, bucket = 0, pageno = 0;
+
     io_.readblock(pageno, bpage_);
 
+    std::string k;
     for (;;) {
-        if (keyLength(bucket) == 0)
-            run = 0;
-        else
-            maxrun = std::max(maxrun, ++run);
+        k = getKey(bucket);
+        if (k.length() != 0) {
+            maxrun = std::max(maxrun, runLength(k));
+            io_.readblock(pageno, bpage_);  // must re-read block
+        }
 
         if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            if ((pageno = (pageno + 1) % (tablesize_ / BUCKETS_PER_PAGE)) == 0)
+            if ((pageno = (pageno + 1) % (lastbucketpage_ + 1)) == 0)
                 break;  // wrapped
 
             io_.readblock(pageno, bpage_);
@@ -380,4 +385,47 @@ uint64_t Index::maxrun()
     }
 
     return maxrun;
+}
+
+uint64_t Index::perm(uint64_t i) const
+{
+    auto perm = 1 + perm_[i];
+    BOOST_ASSERT(1 <= perm && perm < tablesize_);
+    return perm; // pseudo-random probing
+}
+
+void Index::nextbucket(uint64_t i, uint64_t& bucket, uint64_t& pageno)
+{
+    auto realbucket = BUCKETS_PER_PAGE * pageno + bucket;
+    auto nextbucket = (realbucket + perm(i)) % tablesize_;
+    auto nextpage = nextbucket / BUCKETS_PER_PAGE;
+    bucket = nextbucket % BUCKETS_PER_PAGE;
+    if (pageno != nextpage) {
+        io_.readblock(nextpage, bpage_);
+        pageno = nextpage;
+    }
+}
+
+uint64_t Index::runLength(const std::string& key)
+{
+    auto h = hash(key);
+    auto pageno = h / BUCKETS_PER_PAGE;
+    auto bucket = h % BUCKETS_PER_PAGE;
+    auto run = 1ULL;
+
+    io_.readblock(pageno, bpage_);
+
+    std::string K;
+    for (uint64_t i = 0; i < tablesize_ - 1; ++i, ++run) {
+        K = getKey(bucket);
+        if (K.length() == 0)
+            return 0;   // no hit
+
+        if (K == key)
+            break;  // hit
+
+        nextbucket(i, bucket, pageno);
+    }
+
+    return run;
 }

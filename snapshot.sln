@@ -5,8 +5,6 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "snapshot", "snapshot\snapshot.vcxproj", "{BCAA9D87-4997-4E97-9C4F-C02B16B4D104}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chkidx", "chkidx\chkidx.vcxproj", "{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "snapshotlib", "snapshotlib\snapshotlib.vcxproj", "{C44E0DC8-2C04-42E7-B482-BBD026F65E06}"
 EndProject
 Global
@@ -25,14 +23,6 @@ Global
 		{BCAA9D87-4997-4E97-9C4F-C02B16B4D104}.Release|x64.Build.0 = Release|x64
 		{BCAA9D87-4997-4E97-9C4F-C02B16B4D104}.Release|x86.ActiveCfg = Release|Win32
 		{BCAA9D87-4997-4E97-9C4F-C02B16B4D104}.Release|x86.Build.0 = Release|Win32
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Debug|x64.ActiveCfg = Debug|x64
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Debug|x64.Build.0 = Debug|x64
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Debug|x86.ActiveCfg = Debug|Win32
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Debug|x86.Build.0 = Debug|Win32
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Release|x64.ActiveCfg = Release|x64
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Release|x64.Build.0 = Release|x64
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Release|x86.ActiveCfg = Release|Win32
-		{8291AF96-FBFB-4A19-B8AC-584E2EEE0479}.Release|x86.Build.0 = Release|Win32
 		{C44E0DC8-2C04-42E7-B482-BBD026F65E06}.Debug|x64.ActiveCfg = Debug|x64
 		{C44E0DC8-2C04-42E7-B482-BBD026F65E06}.Debug|x64.Build.0 = Debug|x64
 		{C44E0DC8-2C04-42E7-B482-BBD026F65E06}.Debug|x86.ActiveCfg = Debug|Win32

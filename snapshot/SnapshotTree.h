@@ -10,9 +10,9 @@ public:
     ~SnapshotTree();
 
     void load(Partition* partition);
-    void process(const Event& event);
-
+    void stats();
 private:
+    void process(const Event& event);
     void insert(const Event& event);
     void destroy(const Event& event);
     void update(const Event& event);
