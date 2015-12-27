@@ -70,7 +70,7 @@ private:
     std::string filename_;      // file name
     BlockIO io_;                // block i/o
     uint64_t tablesize_;        // size of hash table
-    uint64_t lastbucketpage_;   // last bucket page
+    uint64_t nbpages_;          // number of bucket pages
     uint64_t pageno_;           // current data page while writing
     uint64_t offset_;           // current offset in data page while writing
     LPBUCKETPAGE bpage_;        // bucket page

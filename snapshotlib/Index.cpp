@@ -17,7 +17,7 @@
 // number of buckets on a page
 constexpr auto BUCKETS_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Bucket);
 
-Index::Index() : tablesize_(0), lastbucketpage_(0), pageno_(0), offset_(0)
+Index::Index() : tablesize_(0), nbpages_(0), pageno_(0), offset_(0)
 {
     bpage_ = static_cast<LPBUCKETPAGE>(mkblock());
     dpager_ = static_cast<LPDATAPAGE>(mkblock());
@@ -40,7 +40,7 @@ void Index::open(const char* filename, uint32_t entries)
 
     tablesize_ = Primes::prime(entries);
     perm_.generate(tablesize_ - 1);
-    lastbucketpage_ = tablesize_ / BUCKETS_PER_PAGE;
+    nbpages_ = (tablesize_ / BUCKETS_PER_PAGE) + 1;
 
     io_.open(filename, std::ios::in | std::ios::out | std::ios::trunc);
     mktable();
@@ -269,7 +269,7 @@ bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket
 bool Index::writeValue(const char* pval, int length, uint64_t& offset)
 {
     if (pageno_ == 0) { // first data page
-        pageno_ = lastbucketpage_ + 1;
+        pageno_ = nbpages_;
     }
 
     if (available() == 0) {
@@ -352,7 +352,7 @@ float Index::loadfactor()
             filled++;
 
         if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            if ((pageno = (pageno + 1) % (lastbucketpage_ + 1)) == 0)
+            if ((pageno = (pageno + 1) % nbpages_) == 0)
                 break;  // wrapped
 
             io_.readblock(pageno, bpage_);
@@ -377,7 +377,7 @@ uint64_t Index::maxrun()
         }
 
         if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            if ((pageno = (pageno + 1) % (lastbucketpage_ + 1)) == 0)
+            if ((pageno = (pageno + 1) % nbpages_) == 0)
                 break;  // wrapped
 
             io_.readblock(pageno, bpage_);
