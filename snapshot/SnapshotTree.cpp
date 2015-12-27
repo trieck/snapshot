@@ -47,6 +47,8 @@ void SnapshotTree::process(const Event& event)
         insert(event);
     } else if (name == "Destroyed") {
         destroy(event);
+    } else if (name == "Reparented") {
+        reparent(event);
     } else {
         update(event);
     }
@@ -54,7 +56,26 @@ void SnapshotTree::process(const Event& event)
 
 void SnapshotTree::insert(const Event& event)
 {
+    if (index_.find(event)) {
+        index_.update(event);
+    } else {
+        insert(event, getParentId(event));
+    }
+}
+
+void SnapshotTree::insert(const Event& event, const std::string& parentId)
+{
     index_.insert(event);
+    addChild(parentId, event.getObjectId());
+}
+
+void SnapshotTree::addChild(const std::string& parentId, const std::string& objectId)
+{
+    if (!index_.find(parentId)) {
+        Event parent;
+        parent.setObjectId(parentId);
+        index_.insert(parent);
+    }
 }
 
 void SnapshotTree::destroy(const Event& event)
@@ -66,4 +87,17 @@ void SnapshotTree::update(const Event& event)
 {
     if (!index_.update(event))
         index_.insert(event);
+}
+
+void SnapshotTree::reparent(const Event& event)
+{
+}
+
+std::string SnapshotTree::getParentId(const Event& event) const
+{
+    auto parentId = event.getParentId();
+    if (parentId.length() == 0)
+        parentId = event.getRootId();
+
+    return parentId;
 }

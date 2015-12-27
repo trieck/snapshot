@@ -56,6 +56,23 @@ std::string Index::filename() const
     return filename_;
 }
 
+bool Index::find(const Event& event)
+{
+    return find(event.getObjectId());
+}
+
+bool Index::find(const std::string& key)
+{
+    uint64_t pageno, bucket;
+    if (!getBucket(key, pageno, bucket))
+        return false;
+
+    if (ISDELETED(bpage_, bucket))
+        return false;
+
+    return true;
+}
+
 bool Index::insert(const Event& event)
 {
     auto key = event.getObjectId();

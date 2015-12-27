@@ -37,6 +37,8 @@ public:
     void open(const char* filename, uint32_t entries = DEFAULT_ENTRIES);
     void close();
     std::string filename() const;
+    bool find(const Event& event);
+    bool find(const std::string& key);
     bool insert(const Event& event);
     bool lookup(const std::string& key, std::string& value);
     bool destroy(const Event& event);
