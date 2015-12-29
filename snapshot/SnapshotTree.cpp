@@ -36,6 +36,7 @@ void SnapshotTree::stats()
     cout << endl << "    Index filename: " << store_.filename() << endl;
     cout << "    Index file size: " << comma(store_.filesize()) << " bytes" << endl;
     cout << "    Hash table size: " << comma(store_.tablesize()) << " buckets" << endl;
+    cout << "    Hash table fill count: " << comma(store_.fillcount()) << " buckets" << endl;
     cout << "    Hash table load factor: " << boost::format("%02.2f%%") % store_.loadfactor() << endl;
     cout << "    Longest run: " << comma(store_.maxrun()) << " buckets" << endl;
 }

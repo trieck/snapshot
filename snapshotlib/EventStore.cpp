@@ -20,7 +20,7 @@
 // number of buckets on a page
 constexpr auto BUCKETS_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Bucket);
 
-EventStore::EventStore() : tablesize_(0), nbpages_(0)
+EventStore::EventStore() : tablesize_(0), nbpages_(0), fillcount_(0)
 {
     bpage_ = static_cast<LPBUCKETPAGE>(BlockIO::mkblock());
 }
@@ -106,6 +106,7 @@ bool EventStore::insert(const Event& event)
 
     SET_FILLED(bpage_, bucket);
     BUCKET_DATUM(bpage_, bucket) = offset;
+    fillcount_++;
 
     io_.writeblock(pageno, bpage_);
 
@@ -266,26 +267,14 @@ uint64_t EventStore::tablesize() const
     return tablesize_;
 }
 
-float EventStore::loadfactor()
+uint64_t EventStore::fillcount() const
 {
-    auto filled = 0;
+    return fillcount_;
+}
 
-    uint64_t bucket = 0, pageno = 0;
-    io_.readblock(pageno, bpage_);
-
-    for (;;) {
-        if (IS_FILLED(bpage_, bucket))
-            filled++;
-
-        if ((bucket = (bucket + 1) % BUCKETS_PER_PAGE) == 0) {  // next page
-            if ((pageno = (pageno + 1) % nbpages_) == 0)
-                break;  // wrapped
-
-            io_.readblock(pageno, bpage_);
-        }
-    }
-
-    return 100 * (filled / static_cast<float>(tablesize_));
+float EventStore::loadfactor() const
+{
+    return 100 * (fillcount_ / static_cast<float>(tablesize_));
 }
 
 uint64_t EventStore::maxrun()

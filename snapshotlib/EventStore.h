@@ -43,7 +43,8 @@ public:
     bool update(const Event& event);
     uint64_t filesize();
     uint64_t tablesize() const;
-    float loadfactor();
+    uint64_t fillcount() const;
+    float loadfactor() const;
     uint64_t maxrun();
 private:
     void mktable();
@@ -68,4 +69,5 @@ private:
     LPBUCKETPAGE bpage_;        // bucket page
     RandomPerm perm_;           // random permutation for pseudo-random probing
     Repository repo_;           // event repository
+    uint64_t fillcount_;        // fill count
 };
