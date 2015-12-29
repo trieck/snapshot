@@ -11,7 +11,7 @@ SnapshotTree::~SnapshotTree()
     index_.close();
 }
 
-void SnapshotTree::load(Partition* partition)
+void SnapshotTree::snapshot(Partition* partition)
 {
     partition->open(std::ios::in);
     std::istream& stream = partition->stream();
@@ -71,10 +71,14 @@ void SnapshotTree::insert(const Event& event, const std::string& parentId)
 
 void SnapshotTree::addChild(const std::string& parentId, const std::string& objectId)
 {
-    if (!index_.find(parentId)) {
-        Event parent;
+    Event parent;
+    if (!index_.find(parentId, parent)) {
         parent.setObjectId(parentId);
+        parent.addChild(objectId);
         index_.insert(parent);
+    } else {
+        parent.addChild(objectId);
+        index_.update(parent);
     }
 }
 

@@ -15,7 +15,7 @@ void Snapshotter::snapshot(const char* file)
 {
     partition(file);
     merge();
-    load();
+    snapshot();
 }
 
 void Snapshotter::partition(const char* file)
@@ -59,20 +59,21 @@ void Snapshotter::insert(const Event& event)
     }
 }
 
-void Snapshotter::load()
+void Snapshotter::snapshot()
 {
     Timer timer;
-    cout << "loading...";
+    cout << "snapshotting...";
 
     for (const auto& partition : partitions_) {
-        load(partition);
+        snapshot(partition);
     }
 
     cout << "complete (" << timer << ")" << endl;
 }
 
-void Snapshotter::load(const PartitionPtr& partition)
+void Snapshotter::snapshot(const PartitionPtr& partition)
 {
     SnapshotTree tree;
-    tree.load(partition.get());
+    tree.snapshot(partition.get());
+    tree.stats();
 }

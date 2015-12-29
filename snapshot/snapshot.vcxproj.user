@@ -3,7 +3,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>D:\source\snapshot\little_events.json</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerEnvironment>TEMP=d:\temp</LocalDebuggerEnvironment>
+    <LocalDebuggerEnvironment>TEMP=d:\temp
+TMP=d:\temp</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArguments>D:\source\snapshot\big_events.json</LocalDebuggerCommandArguments>

@@ -9,7 +9,7 @@ public:
     SnapshotTree();
     ~SnapshotTree();
 
-    void load(Partition* partition);
+    void snapshot(Partition* partition);
     void stats();
 private:
     void process(const Event& event);

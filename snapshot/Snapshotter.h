@@ -14,8 +14,8 @@ private:
     void partition(const char* file);
     void merge();
     void insert(const Event& event);
-    void load();
-    void load(const PartitionPtr& partition);
+    void snapshot();
+    void snapshot(const PartitionPtr& partition);
 
     Partitioner partitioner_;
     PartitionVec partitions_;   // merged set

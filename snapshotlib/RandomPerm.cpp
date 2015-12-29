@@ -28,7 +28,7 @@ void RandomPerm::generate(uint64_t n)
 uint64_t RandomPerm::operator[](uint64_t index) const
 {
     if (index >= n_)
-        throw std::out_of_range("index out of range");
+        throw std::out_of_range("permutation index out of range.");
 
     return table_[index];
 }

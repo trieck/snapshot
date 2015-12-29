@@ -23,6 +23,8 @@ public:
     void setObjectId(const std::string& objectId);
     void putMeta(const std::string& name, const std::string& value);
     void removeMeta(const std::string& name);
+    void addChild(const std::string& objectId);
+    bool hasChild(const std::string& objectId);    
 private:
     void parseMeta();
     Json::Value event_;
