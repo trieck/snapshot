@@ -3,12 +3,12 @@
 
 SnapshotTree::SnapshotTree()
 {
-    index_.open(std::tmpnam(nullptr));
+    store_.open(std::tmpnam(nullptr));
 }
 
 SnapshotTree::~SnapshotTree()
 {
-    index_.close();
+    store_.close();
 }
 
 void SnapshotTree::snapshot(Partition* partition)
@@ -33,11 +33,11 @@ void SnapshotTree::snapshot(Partition* partition)
 
 void SnapshotTree::stats()
 {
-    cout << endl << "    Index filename: " << index_.filename() << endl;
-    cout << "    Index file size: " << comma(index_.filesize()) << " bytes" << endl;
-    cout << "    Hash table size: " << comma(index_.tablesize()) << " buckets" << endl;
-    cout << "    Hash table load factor: " << boost::format("%02.2f%%") % index_.loadfactor() << endl;
-    cout << "    Longest run: " << comma(index_.maxrun()) << " buckets" << endl;
+    cout << endl << "    Index filename: " << store_.filename() << endl;
+    cout << "    Index file size: " << comma(store_.filesize()) << " bytes" << endl;
+    cout << "    Hash table size: " << comma(store_.tablesize()) << " buckets" << endl;
+    cout << "    Hash table load factor: " << boost::format("%02.2f%%") % store_.loadfactor() << endl;
+    cout << "    Longest run: " << comma(store_.maxrun()) << " buckets" << endl;
 }
 
 void SnapshotTree::process(const Event& event)
@@ -56,8 +56,8 @@ void SnapshotTree::process(const Event& event)
 
 void SnapshotTree::insert(const Event& event)
 {
-    if (index_.find(event)) {
-        index_.update(event);
+    if (store_.find(event)) {
+        store_.update(event);
     } else {
         insert(event, getParentId(event));
     }
@@ -65,35 +65,35 @@ void SnapshotTree::insert(const Event& event)
 
 void SnapshotTree::insert(const Event& event, const std::string& parentId)
 {
-    index_.insert(event);
+    store_.insert(event);
     addChild(parentId, event.getObjectId());
 }
 
 void SnapshotTree::addChild(const std::string& parentId, const std::string& objectId)
 {
     Event parent;
-    if (!index_.find(parentId, parent)) {
+    if (!store_.find(parentId, parent)) {
         parent.setObjectId(parentId);
         parent.addChild(objectId);
-        index_.insert(parent);
+        store_.insert(parent);
     } else {
         parent.addChild(objectId);
-        index_.update(parent);
+        store_.update(parent);
     }
 }
 
 void SnapshotTree::destroy(const Event& event)
 {
-    index_.destroy(event);
+    store_.destroy(event);
 }
 
 void SnapshotTree::update(const Event& event)
 {
     Event u;
-    if (index_.find(event.getObjectId(), u)) {
-        index_.update(event.merge(u));
+    if (store_.find(event.getObjectId(), u)) {
+        store_.update(event.merge(u));
     } else {
-        index_.insert(event);
+        store_.insert(event);
     }
 }
 

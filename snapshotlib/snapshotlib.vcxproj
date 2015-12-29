@@ -136,7 +136,7 @@
     <ClInclude Include="fnvhash.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="EventWriter.h" />
-    <ClInclude Include="Index.h" />
+    <ClInclude Include="EventStore.h" />
     <ClInclude Include="Primes.h" />
     <ClInclude Include="radixsort.h" />
     <ClInclude Include="RandomPerm.h" />
@@ -167,7 +167,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">snapshotlib.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">snapshotlib.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="Index.cpp">
+    <ClCompile Include="EventStore.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">snapshotlib.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">snapshotlib.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">snapshotlib.h</PrecompiledHeaderFile>

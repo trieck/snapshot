@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Index.h"
+#include "EventStore.h"
 #include "Partition.h"
 
 class SnapshotTree
@@ -20,6 +20,5 @@ private:
     void update(const Event& event);
     void reparent(const Event& event);
     std::string getParentId(const Event& event) const;
-    Index index_;
+    EventStore store_;
 };
-

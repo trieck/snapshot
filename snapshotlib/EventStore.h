@@ -25,11 +25,11 @@ typedef struct BucketPage {             // hash table page
 // restore default structure alignment
 #pragma pack (pop)
 
-class Index
+class EventStore
 {
 public:
-    Index();
-    ~Index();
+    EventStore();
+    ~EventStore();
 
     void open(const char* filename, uint32_t entries = DEFAULT_ENTRIES);
     void close();

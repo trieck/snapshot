@@ -1,5 +1,5 @@
 #include "snapshotlib.h"
-#include "Index.h"
+#include "EventStore.h"
 #include "Primes.h"
 #include "fnvhash.h"
 #include "sha1.h"
@@ -20,18 +20,18 @@
 // number of buckets on a page
 constexpr auto BUCKETS_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Bucket);
 
-Index::Index() : tablesize_(0), nbpages_(0)
+EventStore::EventStore() : tablesize_(0), nbpages_(0)
 {
     bpage_ = static_cast<LPBUCKETPAGE>(BlockIO::mkblock());
 }
 
-Index::~Index()
+EventStore::~EventStore()
 {
     BlockIO::freeblock(bpage_);
     close();
 }
 
-void Index::open(const char* filename, uint32_t entries)
+void EventStore::open(const char* filename, uint32_t entries)
 {
     filename_ = filename;
     close();
@@ -46,23 +46,23 @@ void Index::open(const char* filename, uint32_t entries)
     repo_.open(std::tmpnam(nullptr));
 }
 
-void Index::close()
+void EventStore::close()
 {
     repo_.close();
     io_.close();
 }
 
-std::string Index::filename() const
+std::string EventStore::filename() const
 {
     return filename_;
 }
 
-bool Index::find(const Event& event)
+bool EventStore::find(const Event& event)
 {
     return find(event.getObjectId());
 }
 
-bool Index::find(const std::string& key)
+bool EventStore::find(const std::string& key)
 {
     uint64_t pageno, bucket;
     if (!getBucket(key, pageno, bucket))
@@ -74,7 +74,7 @@ bool Index::find(const std::string& key)
     return true;
 }
 
-bool Index::find(const std::string& key, Event& event)
+bool EventStore::find(const std::string& key, Event& event)
 {
     std::string value;
     if (!lookup(key, value))
@@ -90,7 +90,7 @@ bool Index::find(const std::string& key, Event& event)
     return true;
 }
 
-bool Index::insert(const Event& event)
+bool EventStore::insert(const Event& event)
 {
     auto key = event.getObjectId();
 
@@ -112,24 +112,24 @@ bool Index::insert(const Event& event)
     return true;
 }
 
-uint64_t Index::hash(const Event& event)
+uint64_t EventStore::hash(const Event& event)
 {
     return hash(event.getObjectId());
 }
 
-uint64_t Index::hash(const std::string& s)
+uint64_t EventStore::hash(const std::string& s)
 {
     uint32_t digest[SHA1_DIGEST_INTS];
     sha1(s, digest);
     return hash(digest);
 }
 
-uint64_t Index::hash(digest_type digest)
+uint64_t EventStore::hash(digest_type digest)
 {
     return fnvhash64<digest_type>()(digest) % tablesize_;
 }
 
-bool Index::lookup(const std::string& key, std::string& value)
+bool EventStore::lookup(const std::string& key, std::string& value)
 {
     value.clear();
 
@@ -147,7 +147,7 @@ bool Index::lookup(const std::string& key, std::string& value)
     return true;
 }
 
-bool Index::destroy(const Event& event)
+bool EventStore::destroy(const Event& event)
 {
     auto key = event.getObjectId();
 
@@ -163,7 +163,7 @@ bool Index::destroy(const Event& event)
 }
 
 
-bool Index::update(const Event& event)
+bool EventStore::update(const Event& event)
 {
     auto key = event.getObjectId();
 
@@ -178,26 +178,26 @@ bool Index::update(const Event& event)
     return true;
 }
 
-void Index::getDigest(uint64_t bucket, digest_type digest)
+void EventStore::getDigest(uint64_t bucket, digest_type digest)
 {
     auto bdigest = BUCKET_DIGEST(bpage_, bucket);
     memcpy(digest, bdigest, sizeof(digest_type));
 }
 
-void Index::setKey(uint64_t bucket, const std::string& key)
+void EventStore::setKey(uint64_t bucket, const std::string& key)
 {
     uint32_t digest[SHA1_DIGEST_INTS];
     sha1(key, digest);
     memcpy(BUCKET_DIGEST(bpage_, bucket), digest, sizeof(digest_type));
 }
 
-void Index::mktable()
+void EventStore::mktable()
 {
     io_.writeblock(nbpages_ - 1, bpage_);
     io_.flush();
 }
 
-bool Index::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
+bool EventStore::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
 {
     auto h = hash(key);
     pageno = h / BUCKETS_PER_PAGE;
@@ -224,12 +224,12 @@ bool Index::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
     return false;
 }
 
-bool Index::isEqualDigest(digest_type d1, digest_type d2) const
+bool EventStore::isEqualDigest(digest_type d1, digest_type d2) const
 {
     return memcmp(d1, d2, sizeof(digest_type)) == 0;
 }
 
-bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket)
+bool EventStore::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket)
 {
     auto h = hash(key);
     pageno = h / BUCKETS_PER_PAGE;
@@ -256,17 +256,17 @@ bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket
     return false;
 }
 
-uint64_t Index::filesize()
+uint64_t EventStore::filesize()
 {
     return io_.getFileSize();
 }
 
-uint64_t Index::tablesize() const
+uint64_t EventStore::tablesize() const
 {
     return tablesize_;
 }
 
-float Index::loadfactor()
+float EventStore::loadfactor()
 {
     auto filled = 0;
 
@@ -288,7 +288,7 @@ float Index::loadfactor()
     return 100 * (filled / static_cast<float>(tablesize_));
 }
 
-uint64_t Index::maxrun()
+uint64_t EventStore::maxrun()
 {
     uint64_t maxrun = 0, bucket = 0, pageno = 0;
     uint32_t digest[SHA1_DIGEST_INTS];
@@ -313,14 +313,14 @@ uint64_t Index::maxrun()
     return maxrun;
 }
 
-uint64_t Index::perm(uint64_t i) const
+uint64_t EventStore::perm(uint64_t i) const
 {
     auto perm = 1 + perm_[i];
     BOOST_ASSERT(1 <= perm && perm < tablesize_);
     return perm; // pseudo-random probing
 }
 
-void Index::nextbucket(uint64_t i, uint64_t& bucket, uint64_t& pageno)
+void EventStore::nextbucket(uint64_t i, uint64_t& bucket, uint64_t& pageno)
 {
     auto realbucket = BUCKETS_PER_PAGE * pageno + bucket;
     auto nextbucket = (realbucket + perm(i)) % tablesize_;
@@ -332,7 +332,7 @@ void Index::nextbucket(uint64_t i, uint64_t& bucket, uint64_t& pageno)
     }
 }
 
-uint64_t Index::runLength(digest_type digest)
+uint64_t EventStore::runLength(digest_type digest)
 {
     auto h = hash(digest);
     auto pageno = h / BUCKETS_PER_PAGE;
