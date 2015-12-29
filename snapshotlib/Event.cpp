@@ -156,3 +156,17 @@ bool Event::hasChild(const std::string& objectId)
 
     return false;
 }
+
+Event Event::merge(const Event& event) const
+{
+    auto& children = event[TREE_CHILDREN];
+    if (children.isNull())
+        return event;
+
+    Event m(*this);
+    for (Json::ValueConstIterator it = children.begin(); it != children.end(); it++) {
+        m.addChild((*it).asString());
+    }
+
+    return m;
+}

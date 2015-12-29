@@ -89,8 +89,12 @@ void SnapshotTree::destroy(const Event& event)
 
 void SnapshotTree::update(const Event& event)
 {
-    if (!index_.update(event))
+    Event u;
+    if (index_.find(event.getObjectId(), u)) {
+        index_.update(event.merge(u));
+    } else {
         index_.insert(event);
+    }
 }
 
 void SnapshotTree::reparent(const Event& event)

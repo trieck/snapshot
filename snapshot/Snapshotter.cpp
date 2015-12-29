@@ -45,9 +45,7 @@ void Snapshotter::merge()
 {
     Timer timer;
     cout << "merging...";
-
     partitions_ = partitioner_.merge();
-
     cout << "complete (" << timer << ")" << endl;
 }
 
@@ -63,11 +61,9 @@ void Snapshotter::snapshot()
 {
     Timer timer;
     cout << "snapshotting...";
-
     for (const auto& partition : partitions_) {
         snapshot(partition);
     }
-
     cout << "complete (" << timer << ")" << endl;
 }
 
@@ -75,5 +71,4 @@ void Snapshotter::snapshot(const PartitionPtr& partition)
 {
     SnapshotTree tree;
     tree.snapshot(partition.get());
-    tree.stats();
 }
