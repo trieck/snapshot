@@ -3,8 +3,8 @@
 #include <boost/uuid/sha1.hpp>
 #include "BlockIO.h"
 #include "Event.h"
-#include "EventWriter.h"
 #include "RandomPerm.h"
+#include "Repository.h"
 
 using digest_type = boost::uuids::detail::sha1::digest_type;
 constexpr auto SHA1_DIGEST_INTS = sizeof(digest_type) / sizeof(uint32_t);
@@ -21,16 +21,6 @@ typedef struct Bucket {                 // hash table bucket
 typedef struct BucketPage {             // hash table page
     Bucket buckets[1];                  // hash table
 } *LPBUCKETPAGE;
-
-typedef struct Datum {                  // 512-byte datum
-    uint64_t next;                      // next datum if linked
-    uint64_t length;                    // total datum length
-    char data[496];                     // first 496 bytes of data
-} *LPDATUM;
-
-typedef struct DataPage {               // data page
-    Datum data[1];
-} *LPDATAPAGE;
 
 // restore default structure alignment
 #pragma pack (pop)
@@ -57,24 +47,11 @@ public:
     uint64_t maxrun();
 private:
     void mktable();
-    void* mkblock();
-    void freeblock(void* block);
     uint64_t hash(const Event& event);
     uint64_t hash(const std::string& s);
     uint64_t hash(digest_type digest);
     void getDigest(uint64_t bucket, digest_type digest);
     void setKey(uint64_t bucket, const std::string& key);
-    bool writeValue(const Event& event, uint64_t& offset);
-    bool writeValue(const char* pval, int length, uint64_t& offset);
-    bool updateValue(const Event& event, uint64_t offset);
-    bool updateValue(const char* pval, int length, uint64_t offset);
-    void readVal(uint64_t offset, std::string& value);
-    void newpage();
-    bool fullpage() const;
-    uint64_t datumoffset();
-    uint64_t datumoffset(uint64_t pageno, uint8_t datum) const;
-    uint64_t nextdatumoffset() const;
-    void newdatum();
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     bool getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     uint64_t perm(uint64_t i) const;
@@ -88,11 +65,7 @@ private:
     BlockIO io_;                // block i/o
     uint64_t tablesize_;        // size of hash table
     uint64_t nbpages_;          // number of bucket pages
-    uint64_t dpageno_;          // current data page while writing
-    uint8_t ddatum_;            // current datum on data page while writing
     LPBUCKETPAGE bpage_;        // bucket page
-    LPDATAPAGE dpagew_;         // write data page
-    LPDATAPAGE dpager_;         // read data page
-    EventWriter writer_;        // event writer
     RandomPerm perm_;           // random permutation for pseudo-random probing
+    Repository repo_;           // event repository
 };

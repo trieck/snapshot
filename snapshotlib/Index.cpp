@@ -17,33 +17,23 @@
 #define BUCKET_DIGEST(p, b)     (p->buckets[b].digest)
 #define BUCKET_DATUM(p, b)      (p->buckets[b].datum)
 
-// datum macros
-#define DATUM_NEXT(p, d)        (p->data[d].next)
-#define DATUM_LENGTH(p, d)      (p->data[d].length)
-#define DATUM_PTR(p, d)         (p->data[d].data)
-
 // number of buckets on a page
 constexpr auto BUCKETS_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Bucket);
 
-Index::Index() : tablesize_(0), nbpages_(0), dpageno_(0), ddatum_(0)
+Index::Index() : tablesize_(0), nbpages_(0)
 {
-    bpage_ = static_cast<LPBUCKETPAGE>(mkblock());
-    dpager_ = static_cast<LPDATAPAGE>(mkblock());
-    dpagew_ = static_cast<LPDATAPAGE>(mkblock());
+    bpage_ = static_cast<LPBUCKETPAGE>(BlockIO::mkblock());
 }
 
 Index::~Index()
 {
-    freeblock(bpage_);
-    freeblock(dpager_);
-    freeblock(dpagew_);
+    BlockIO::freeblock(bpage_);
     close();
 }
 
 void Index::open(const char* filename, uint32_t entries)
 {
     filename_ = filename;
-
     close();
 
     tablesize_ = Primes::prime(entries);
@@ -52,10 +42,13 @@ void Index::open(const char* filename, uint32_t entries)
 
     io_.open(filename, std::ios::in | std::ios::out | std::ios::trunc);
     mktable();
+
+    repo_.open(std::tmpnam(nullptr));
 }
 
 void Index::close()
 {
+    repo_.close();
     io_.close();
 }
 
@@ -108,7 +101,7 @@ bool Index::insert(const Event& event)
     setKey(bucket, key);
 
     uint64_t offset;
-    if (!writeValue(event, offset))
+    if (!repo_.writeEvent(event, offset))
         return false;
 
     SET_FILLED(bpage_, bucket);
@@ -149,7 +142,7 @@ bool Index::lookup(const std::string& key, std::string& value)
 
     auto offset = BUCKET_DATUM(bpage_, bucket);
 
-    readVal(offset, value);
+    repo_.readVal(offset, value);
 
     return true;
 }
@@ -179,7 +172,7 @@ bool Index::update(const Event& event)
         return false;
 
     uint64_t offset = BUCKET_DATUM(bpage_, bucket);
-    if (!updateValue(event, offset))
+    if (!repo_.updateEvent(event, offset))
         return false;
 
     return true;
@@ -202,23 +195,6 @@ void Index::mktable()
 {
     io_.writeblock(nbpages_ - 1, bpage_);
     io_.flush();
-}
-
-void* Index::mkblock()
-{
-    return new char[BlockIO::BLOCK_SIZE]();
-}
-
-void Index::freeblock(void* block)
-{
-    delete[] block;
-}
-
-bool Index::writeValue(const Event& event, uint64_t& offset)
-{
-    auto value = writer_.write(event);
-    auto length = static_cast<int>(value.length());
-    return writeValue(value.c_str(), length, offset);
 }
 
 bool Index::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
@@ -278,166 +254,6 @@ bool Index::getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket
     }
 
     return false;
-}
-
-void Index::newpage()
-{
-    memset(dpagew_, 0, BlockIO::BLOCK_SIZE);
-    dpageno_++;
-    ddatum_ = 0;
-}
-
-bool Index::fullpage() const
-{
-    // is the current data page full?
-    return ddatum_ == BlockIO::BLOCK_SIZE / sizeof(Datum);
-}
-
-uint64_t Index::datumoffset()
-{
-    if (dpageno_ == 0) {    // first data page
-        dpageno_ = nbpages_;
-    }
-
-    if (fullpage()) {
-        newpage();
-    }
-
-    return datumoffset(dpageno_, ddatum_);
-}
-
-uint64_t Index::datumoffset(uint64_t pageno, uint8_t datum) const
-{
-    return (pageno * BlockIO::BLOCK_SIZE) + (datum * sizeof(Datum));
-}
-
-uint64_t Index::nextdatumoffset() const
-{
-    auto pageno = dpageno_;
-    auto ddatum = ddatum_ + 1;
-
-    if (fullpage()) {
-        pageno++;
-        ddatum = 0;
-    }
-
-    return datumoffset(pageno, ddatum);
-}
-
-void Index::newdatum()
-{
-    ddatum_++;
-    if (fullpage()) {
-        io_.writeblock(dpageno_, dpagew_);
-        newpage();
-    }
-}
-
-bool Index::writeValue(const char* pval, int length, uint64_t& offset)
-{
-    offset = datumoffset();
-
-    constexpr auto avail = static_cast<int>(sizeof(Datum::data));
-
-    int written = 0;
-    for (auto i = 0, written = 0; length > 0; ++i) {
-        if (i > 0) {
-            DATUM_NEXT(dpagew_, ddatum_) = nextdatumoffset();
-            newdatum();
-            written = 0;
-        }
-
-        auto nlength = std::min(length, avail);
-        auto ptr = DATUM_PTR(dpagew_, ddatum_);
-        while (nlength > 0) {
-            *ptr++ = *pval++;
-            nlength--;
-            written++;
-        }
-
-        DATUM_LENGTH(dpagew_, ddatum_) = written;
-        length -= written;
-    }
-
-    io_.writeblock(dpageno_, dpagew_);
-    newdatum();
-
-    return true;
-}
-
-bool Index::updateValue(const Event& event, uint64_t offset)
-{
-    auto value = writer_.write(event);
-    auto length = static_cast<int>(value.length());
-    return updateValue(value.c_str(), length, offset);
-}
-
-bool Index::updateValue(const char* pval, int length, uint64_t offset)
-{
-    uint64_t pageno = offset / BlockIO::BLOCK_SIZE;
-    uint64_t datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
-    io_.readblock(pageno, dpager_);
-
-    constexpr auto avail = static_cast<int>(sizeof(Datum::data));
-
-    for (auto i = 0, written = 0; length > 0; ++i) {
-        if (i > 0) {
-            if ((offset = DATUM_NEXT(dpager_, datum)) == 0) {
-                DATUM_NEXT(dpager_, datum) = datumoffset();
-                io_.writeblock(pageno, dpager_);
-                return writeValue(pval, length, offset);
-            } else {
-                io_.writeblock(pageno, dpager_);
-                pageno = offset / BlockIO::BLOCK_SIZE;
-                datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
-                io_.readblock(pageno, dpager_);
-            }
-            written = 0;
-        }
-
-        auto nlength = std::min(length, avail);
-        auto ptr = DATUM_PTR(dpager_, datum);
-        while (nlength > 0) {
-            *ptr++ = *pval++;
-            nlength--;
-            written++;
-        }
-
-        nlength = std::max(0, static_cast<int>(DATUM_LENGTH(dpager_, datum) - written));
-        while (nlength > 0) {   // clear leftover
-            *ptr++ = '\0';
-            nlength--;
-        }
-
-        DATUM_LENGTH(dpager_, datum) = written;
-        length -= written;
-    }
-
-    io_.writeblock(pageno, dpager_);
-
-    return true;
-}
-
-void Index::readVal(uint64_t offset, std::string& value)
-{
-    std::ostringstream ss;
-
-    uint64_t pageno, datum;
-
-    do {
-        pageno = offset / BlockIO::BLOCK_SIZE;
-        datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
-        io_.readblock(pageno, dpager_);
-
-        auto ptr = DATUM_PTR(dpager_, datum);
-        auto length = static_cast<int>(DATUM_LENGTH(dpager_, datum));
-        while (length > 0) {
-            ss << *ptr++;
-            length--;
-        }
-    } while ((offset = DATUM_NEXT(dpager_, datum)));
-
-    value = ss.str();
 }
 
 uint64_t Index::filesize()

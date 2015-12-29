@@ -66,3 +66,13 @@ void BlockIO::flush()
 {
     stream_.flush();
 }
+
+void* BlockIO::mkblock()
+{
+    return new char[BlockIO::BLOCK_SIZE]();
+}
+
+void BlockIO::freeblock(void* block)
+{
+    delete[] block;
+}

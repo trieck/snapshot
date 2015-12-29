@@ -140,6 +140,7 @@
     <ClInclude Include="Primes.h" />
     <ClInclude Include="radixsort.h" />
     <ClInclude Include="RandomPerm.h" />
+    <ClInclude Include="Repository.h" />
     <ClInclude Include="sha1.h" />
     <ClInclude Include="snapshotlib.h" />
     <ClInclude Include="string_utils.h" />
@@ -179,6 +180,12 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">snapshotlib.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="RandomPerm.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">snapshotlib.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">snapshotlib.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">snapshotlib.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">snapshotlib.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="Repository.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">snapshotlib.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">snapshotlib.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">snapshotlib.h</PrecompiledHeaderFile>

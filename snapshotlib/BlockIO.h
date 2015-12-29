@@ -1,4 +1,5 @@
 #pragma once
+
 class BlockIO
 {
 public:
@@ -16,7 +17,9 @@ public:
     void flush();
 
     static constexpr auto BLOCK_SIZE = 4096UL;
+
+    static void* mkblock();
+    static void freeblock(void* block);
 private:
     std::fstream stream_;
 };
-
