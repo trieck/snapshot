@@ -29,16 +29,15 @@ public:
     void open(const char* filename);
     void close();
 
-    bool writeEvent(const Event& event, uint64_t& offset);
-    bool updateEvent(const Event& event, uint64_t offset);
+    void writeEvent(const Event& event, uint64_t& offset);
+    void updateEvent(const Event& event, uint64_t offset);
     void readVal(uint64_t offset, std::string& value); 
 
 private:
-    bool writeValue(const char* pval, int length, uint64_t& offset);
-    bool updateValue(const char* pval, int length, uint64_t offset);
+    void writeValue(const char* pval, int length, uint64_t& offset);
+    void updateValue(const char* pval, int length, uint64_t offset);
     
     void newpage();
-    bool fullpage() const;
     uint64_t datumoffset();
     uint64_t datumoffset(uint64_t pageno, uint8_t datum) const;
     uint64_t nextdatumoffset() const;
@@ -49,6 +48,5 @@ private:
     EventWriter writer_;        // event writer
     uint64_t dpageno_;          // current data page while writing
     uint8_t ddatum_;            // current datum on data page while writing
-    LPDATAPAGE dpager_;         // read data page
-    LPDATAPAGE dpagew_;         // write data page
+    LPDATAPAGE dpage_;          // data page
 };

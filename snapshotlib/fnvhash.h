@@ -13,8 +13,6 @@ size_t _fnvhash64(const void *k, size_t len) {
 }
 
 template<typename T>
-struct fnvhash64 {
-    size_t operator() (const T& key) const {
-        return _fnvhash64(&key, sizeof(T));
-    }
-};
+size_t fnvhash64(const T& key) {
+    return _fnvhash64(&key, sizeof(T));
+}

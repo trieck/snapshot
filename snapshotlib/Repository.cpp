@@ -6,23 +6,24 @@
 #define DATUM_LENGTH(p, d)      (p->data[d].length)
 #define DATUM_PTR(p, d)         (p->data[d].data)
 
+auto constexpr DATUM_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Datum);
+
 Repository::Repository() : dpageno_(0), ddatum_(0)
 {
-    dpager_ = static_cast<LPDATAPAGE>(BlockIO::mkblock());
-    dpagew_ = static_cast<LPDATAPAGE>(BlockIO::mkblock());
+    dpage_ = static_cast<LPDATAPAGE>(BlockIO::mkblock());
 }
 
 Repository::~Repository()
 {
     close();
-    BlockIO::freeblock(dpager_);
-    BlockIO::freeblock(dpagew_);
+    BlockIO::freeblock(dpage_);
 }
 
 void Repository::open(const char* filename)
 {
     filename_ = filename;
     io_.open(filename, std::ios::in | std::ios::out | std::ios::trunc);
+    io_.writeblock(dpageno_, dpage_);
 }
 
 void Repository::close()
@@ -30,32 +31,21 @@ void Repository::close()
     io_.close();
 }
 
-bool Repository::writeEvent(const Event& event, uint64_t& offset)
+void Repository::writeEvent(const Event& event, uint64_t& offset)
 {
     auto value = writer_.write(event);
     auto length = static_cast<int>(value.length());
-    return writeValue(value.c_str(), length, offset);
+    writeValue(value.c_str(), length, offset);
 }
 
 void Repository::newpage()
 {
-    memset(dpagew_, 0, BlockIO::BLOCK_SIZE);
-    dpageno_++;
-    ddatum_ = 0;
-}
-
-bool Repository::fullpage() const
-{
-    // is the current data page full?
-    return ddatum_ == BlockIO::BLOCK_SIZE / sizeof(Datum);
+    memset(dpage_, 0, BlockIO::BLOCK_SIZE);
+    io_.writeblock(++dpageno_, dpage_);
 }
 
 uint64_t Repository::datumoffset()
 {
-    if (fullpage()) {
-        newpage();
-    }
-
     return datumoffset(dpageno_, ddatum_);
 }
 
@@ -67,11 +57,10 @@ uint64_t Repository::datumoffset(uint64_t pageno, uint8_t datum) const
 uint64_t Repository::nextdatumoffset() const
 {
     auto pageno = dpageno_;
-    auto ddatum = ddatum_ + 1;
+    auto ddatum = ddatum_;
 
-    if (fullpage()) {
+    if ((++ddatum %= DATUM_PER_PAGE) == 0) {
         pageno++;
-        ddatum = 0;
     }
 
     return datumoffset(pageno, ddatum);
@@ -79,96 +68,96 @@ uint64_t Repository::nextdatumoffset() const
 
 void Repository::newdatum()
 {
-    ddatum_++;
-    if (fullpage()) {
-        io_.writeblock(dpageno_, dpagew_);
+    if ((++ddatum_ %= DATUM_PER_PAGE) == 0) {
+        io_.writeblock(dpageno_, dpage_);
         newpage();
     }
 }
 
-bool Repository::writeValue(const char* pval, int length, uint64_t& offset)
+void Repository::writeValue(const char* pval, int length, uint64_t& offset)
 {
     offset = datumoffset();
+
+    io_.readblock(dpageno_, dpage_);
 
     constexpr auto avail = static_cast<int>(sizeof(Datum::data));
 
     int written = 0;
     for (auto i = 0, written = 0; length > 0; ++i) {
         if (i > 0) {
-            DATUM_NEXT(dpagew_, ddatum_) = nextdatumoffset();
+            DATUM_NEXT(dpage_, ddatum_) = nextdatumoffset();
             newdatum();
             written = 0;
         }
 
         auto nlength = std::min(length, avail);
-        auto ptr = DATUM_PTR(dpagew_, ddatum_);
+        auto ptr = DATUM_PTR(dpage_, ddatum_);
         while (nlength > 0) {
             *ptr++ = *pval++;
             nlength--;
             written++;
         }
 
-        DATUM_LENGTH(dpagew_, ddatum_) = written;
+        DATUM_LENGTH(dpage_, ddatum_) = written;
         length -= written;
     }
 
-    io_.writeblock(dpageno_, dpagew_);
-    newdatum();
+    io_.writeblock(dpageno_, dpage_);
 
-    return true;
+    newdatum();
 }
 
-bool Repository::updateEvent(const Event& event, uint64_t offset)
+void Repository::updateEvent(const Event& event, uint64_t offset)
 {
     auto value = writer_.write(event);
     auto length = static_cast<int>(value.length());
-    return updateValue(value.c_str(), length, offset);
+    updateValue(value.c_str(), length, offset);
 }
 
-bool Repository::updateValue(const char* pval, int length, uint64_t offset)
+void Repository::updateValue(const char* pval, int length, uint64_t offset)
 {
     uint64_t pageno = offset / BlockIO::BLOCK_SIZE;
     uint64_t datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
-    io_.readblock(pageno, dpager_);
+
+    io_.readblock(pageno, dpage_);
 
     constexpr auto avail = static_cast<int>(sizeof(Datum::data));
 
     for (auto i = 0, written = 0; length > 0; ++i) {
         if (i > 0) {
-            if ((offset = DATUM_NEXT(dpager_, datum)) == 0) {
-                DATUM_NEXT(dpager_, datum) = datumoffset();
-                io_.writeblock(pageno, dpager_);
-                return writeValue(pval, length, offset);
+            if ((offset = DATUM_NEXT(dpage_, datum)) == 0) {
+                DATUM_NEXT(dpage_, datum) = datumoffset();
+                io_.writeblock(pageno, dpage_);
+                writeValue(pval, length, offset);
+                return;
             } else {
-                io_.writeblock(pageno, dpager_);
+                io_.writeblock(pageno, dpage_);
                 pageno = offset / BlockIO::BLOCK_SIZE;
                 datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
-                io_.readblock(pageno, dpager_);
+                io_.readblock(pageno, dpage_);
             }
             written = 0;
         }
 
         auto nlength = std::min(length, avail);
-        auto ptr = DATUM_PTR(dpager_, datum);
+        auto ptr = DATUM_PTR(dpage_, datum);
         while (nlength > 0) {
             *ptr++ = *pval++;
             nlength--;
             written++;
         }
 
-        nlength = std::max(0, static_cast<int>(DATUM_LENGTH(dpager_, datum) - written));
+        nlength = std::max(0, static_cast<int>(DATUM_LENGTH(dpage_, datum) - written));
         while (nlength > 0) {   // clear leftover
             *ptr++ = '\0';
             nlength--;
         }
 
-        DATUM_LENGTH(dpager_, datum) = written;
+        DATUM_LENGTH(dpage_, datum) = written;
         length -= written;
     }
 
-    io_.writeblock(pageno, dpager_);
-
-    return true;
+    io_.writeblock(pageno, dpage_);
 }
 
 void Repository::readVal(uint64_t offset, std::string& value)
@@ -180,15 +169,15 @@ void Repository::readVal(uint64_t offset, std::string& value)
     do {
         pageno = offset / BlockIO::BLOCK_SIZE;
         datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
-        io_.readblock(pageno, dpager_);
+        io_.readblock(pageno, dpage_);
 
-        auto ptr = DATUM_PTR(dpager_, datum);
-        auto length = static_cast<int>(DATUM_LENGTH(dpager_, datum));
+        auto ptr = DATUM_PTR(dpage_, datum);
+        auto length = static_cast<int>(DATUM_LENGTH(dpage_, datum));
         while (length > 0) {
             ss << *ptr++;
             length--;
         }
-    } while ((offset = DATUM_NEXT(dpager_, datum)));
+    } while ((offset = DATUM_NEXT(dpage_, datum)));
 
     value = ss.str();
 }

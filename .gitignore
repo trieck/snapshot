@@ -9,3 +9,4 @@ ipch/
 x64/
 Debug/
 Release/
+*.jsonl

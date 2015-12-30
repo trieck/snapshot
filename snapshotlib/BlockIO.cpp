@@ -18,6 +18,7 @@ void BlockIO::open(const char* filename, OpenMode mode)
         boost::format message = boost::format("unable to open file \"%s\".") % filename;
         throw std::exception(message.str().c_str());
     }
+    filename_ = filename;
 }
 
 void BlockIO::close()
@@ -25,6 +26,12 @@ void BlockIO::close()
     if (stream_.is_open()) {
         stream_.close();
     }
+}
+
+void BlockIO::unlink()
+{
+    close();
+    _unlink(filename_.c_str());
 }
 
 void BlockIO::readblock(uint64_t blockno, void* pv)
@@ -65,6 +72,11 @@ uint64_t BlockIO::getFileSize()
 void BlockIO::flush()
 {
     stream_.flush();
+}
+
+std::string BlockIO::filename() const
+{
+    return filename_;
 }
 
 void* BlockIO::mkblock()
