@@ -157,6 +157,24 @@ bool Event::hasChild(const std::string& objectId)
     return false;
 }
 
+bool Event::removeChild(const std::string& objectId)
+{
+    auto& children = event_[TREE_CHILDREN];
+    if (!children.isArray())
+        return false;
+
+    auto size = children.size();
+
+    Json::Value removed;
+    for (Json::ArrayIndex i = 0; i < size; ++i) {
+        if (children[i] == objectId) {
+            return children.removeIndex(i, &removed);
+        }
+    }
+
+    return false;
+}
+
 Event Event::merge(const Event& event) const
 {
     auto& children = event[TREE_CHILDREN];

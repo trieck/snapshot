@@ -25,6 +25,7 @@ public:
     void removeMeta(const std::string& name);
     void addChild(const std::string& objectId);
     bool hasChild(const std::string& objectId);    
+    bool removeChild(const std::string& objectId);
     Event merge(const Event& event) const;
 private:
     void parseMeta();
