@@ -6,7 +6,10 @@ class RandomPerm
 {
 public:
     RandomPerm();
+    RandomPerm(const RandomPerm& rhs);
     ~RandomPerm();
+
+    RandomPerm& operator =(const RandomPerm& rhs);
 
     void generate(uint64_t n);
     uint64_t size() const { return n_; }

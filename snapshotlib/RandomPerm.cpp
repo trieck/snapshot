@@ -5,9 +5,25 @@ RandomPerm::RandomPerm() : n_(0), table_(nullptr)
 {
 }
 
+RandomPerm::RandomPerm(const RandomPerm& rhs)
+{
+    *this = rhs;
+}
+
 RandomPerm::~RandomPerm()
 {
     free();
+}
+
+RandomPerm& RandomPerm::operator=(const RandomPerm& rhs)
+{
+    free();
+
+    n_ = rhs.n_;
+    table_ = new uint64_t[n_];
+    memcpy(table_, rhs.table_, sizeof(uint64_t)* n_);
+
+    return *this;
 }
 
 void RandomPerm::generate(uint64_t n)
@@ -17,7 +33,7 @@ void RandomPerm::generate(uint64_t n)
 
     std::random_device rd;
     generator_.seed(rd());
-    
+
     for (uint64_t i = 0, j = 0; i < n_; ++i) {
         j = uniform(i);
         table_[i] = table_[j];

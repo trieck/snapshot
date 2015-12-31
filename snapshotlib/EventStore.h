@@ -33,6 +33,7 @@ public:
 
     void open(const char* filename, uint32_t entries = DEFAULT_ENTRIES);
     void close();
+    void unlink();
     std::string filename() const;
     bool find(const Event& event);
     bool find(const std::string& key);
@@ -47,7 +48,7 @@ public:
     float loadfactor() const;
     uint64_t maxrun();
 private:
-    void mktable();
+    void mktable(const char* filename, uint32_t entries);
     uint64_t hash(const Event& event);
     uint64_t hash(const std::string& s);
     uint64_t hash(digest_type digest);
@@ -55,6 +56,7 @@ private:
     void getDigest(uint64_t bucket, digest_type digest);
     void setKey(uint64_t bucket, const std::string& key);
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);
+    bool findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket);
     bool getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     uint64_t perm(uint64_t i) const;
     void nextbucket(uint64_t i, uint64_t& bucket, uint64_t& page);
@@ -62,15 +64,14 @@ private:
     bool isEqualDigest(digest_type d1, digest_type d2) const;
     bool isfull() const;
     void resize();
+    bool transfer(LPBUCKET bucket);
 
     static constexpr auto DEFAULT_ENTRIES = 10000UL;
 
-    std::string filename_;      // file name
     BlockIO io_;                // block i/o
     uint64_t tablesize_;        // size of hash table
     uint64_t nbpages_;          // number of bucket pages
     LPBUCKETPAGE page_;         // bucket page
-    LPBUCKETPAGE page2_;        // bucket page for resize
     RandomPerm perm_;           // random permutation for pseudo-random probing
     Repository repo_;           // event repository
     uint64_t fillcount_;        // fill count
