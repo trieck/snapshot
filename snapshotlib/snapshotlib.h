@@ -3,7 +3,10 @@
 
 #include "targetver.h"
 
+#ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN  
+#include <boost/config/compiler/visualc.hpp>
+#endif
 
 #include <stdio.h>
 #include <tchar.h>
@@ -18,10 +21,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <iterator>
-
-#ifdef _MSC_VER
-#include <boost/config/compiler/visualc.hpp>
-#endif
+#include <regex>
 
 #include <boost/format.hpp>
 #include "json/json.h"

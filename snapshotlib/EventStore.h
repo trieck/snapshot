@@ -49,11 +49,11 @@ public:
     uint64_t maxrun();
 private:
     void mktable(const char* filename, uint32_t entries);
-    uint64_t hash(const Event& event);
-    uint64_t hash(const std::string& s);
-    uint64_t hash(digest_type digest);
-    uint64_t hash(digest_type digest, uint64_t tablesize);
-    void getDigest(uint64_t bucket, digest_type digest);
+    uint64_t hash(const Event& event) const;
+    uint64_t hash(const std::string& s) const;
+    uint64_t hash(digest_type digest) const;
+    uint64_t hash(digest_type digest, uint64_t tablesize) const;
+    void getDigest(uint64_t bucket, digest_type digest) const;
     void setKey(uint64_t bucket, const std::string& key);
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     bool findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket);

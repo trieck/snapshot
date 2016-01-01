@@ -1,6 +1,13 @@
 #include "stdafx.h"
 #include "SnapshotTree.h"
 
+namespace {
+    const std::regex CREATED("Created");
+    const std::regex DESTROYED("Destroyed");
+    const std::regex REPARENTED("Reparented");
+    const std::regex SNAP_EVENT("Click|DoubleClick|GotFocus|LostFocus|SelectedIndexChanged|UserModified|CellValueChanged");
+}
+
 SnapshotTree::SnapshotTree()
 {
     store_.open(std::tmpnam(nullptr));
@@ -44,12 +51,14 @@ void SnapshotTree::stats()
 void SnapshotTree::process(const Event& event)
 {
     auto name = event["EVENT_NAME"].asString();
-    if (name == "Created") {
+    if (std::regex_match(name, CREATED)) {
         insert(event);
-    } else if (name == "Destroyed") {
+    } else if (std::regex_match(name, DESTROYED)) {
         destroy(event);
-    } else if (name == "Reparented") {
+    } else if (std::regex_match(name, REPARENTED)) {
         reparent(event);
+    } else if (std::regex_match(name, SNAP_EVENT)) {
+        snapshot(event);
     } else {
         update(event);
     }
@@ -119,9 +128,33 @@ void SnapshotTree::reparent(const Event& event)
             parentRemove(oldParentId, objectId);
         }
         addChild(newParentId, objectId);
-        update(event.merge(u));
+        update(event);
     } else {
         insert(event);
+    }
+}
+
+void SnapshotTree::snapshot(const Event & event)
+{
+    SnapshotParser parser; 
+    
+    update(event);    
+    parse(parser, event);
+}
+
+void SnapshotTree::parse(SnapshotParser& parser, const Event& event)
+{
+    Event root;
+    if (store_.find(event.getRootId(), root)) {
+        parseNode(parser, root);
+    }
+}
+
+void SnapshotTree::parseNode(SnapshotParser& parser, const Event& node)
+{
+    auto children = sortedChildren(node);
+    for (const auto& child : children) {
+        parseNode(parser, child);
     }
 }
 
@@ -132,4 +165,19 @@ std::string SnapshotTree::getParentId(const Event& event) const
         parentId = event.getRootId();
 
     return parentId;
+}
+
+EventVec SnapshotTree::sortedChildren(const Event& event)
+{
+    EventVec output;
+
+    auto& children = event.children();
+    for (Json::ValueConstIterator it = children.begin(); it != children.end(); it++) {
+        Event child;
+        if (store_.find((*it).asString(), child)) {
+            output.push_back(child);
+        }
+    }
+
+    return output;
 }

@@ -44,7 +44,7 @@ void Repository::newpage()
     io_.writeblock(++dpageno_, dpage_);
 }
 
-uint64_t Repository::datumoffset()
+uint64_t Repository::datumoffset() const
 {
     return datumoffset(dpageno_, ddatum_);
 }

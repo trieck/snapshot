@@ -38,7 +38,7 @@ private:
     void updateValue(const char* pval, int length, uint64_t offset);
     
     void newpage();
-    uint64_t datumoffset();
+    uint64_t datumoffset() const;
     uint64_t datumoffset(uint64_t pageno, uint8_t datum) const;
     uint64_t nextdatumoffset() const;
     void newdatum();

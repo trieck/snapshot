@@ -26,9 +26,15 @@ public:
     void addChild(const std::string& objectId);
     bool hasChild(const std::string& objectId);    
     bool removeChild(const std::string& objectId);
-    Event merge(const Event& event) const;
+    Event merge(const Event& event) const;    
+    const Json::Value& children() const;
+
 private:
+    void setInitialSequenceNumber();
+    void copyInitialSequenceNumber(const Event& event);
     void parseMeta();
     Json::Value event_;
     std::unordered_map<std::string, Json::Value> meta_;
 };
+
+using EventVec = std::vector<Event>;

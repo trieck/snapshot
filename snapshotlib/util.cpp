@@ -1,5 +1,7 @@
 #include "snapshotlib.h"
 
+constexpr auto LINE_BUF_SIZE = 4096;
+
 std::string strerror()
 {
     return ::strerror(errno);
@@ -29,9 +31,7 @@ std::string comma(uint64_t i)
 
 bool getline(std::istream& is, std::string& line)
 {
-    constexpr int BUF_SIZE = 4096;
-
-    char buf[BUF_SIZE], *pbuf = buf;
+    char buf[LINE_BUF_SIZE], *pbuf = buf;
     line.clear();
 
     auto streambuf = is.rdbuf();
@@ -49,7 +49,7 @@ bool getline(std::istream& is, std::string& line)
             line += buf;
             break;
         } else {
-            if ((pbuf - buf) + 1 == BUF_SIZE) {
+            if ((pbuf - buf) + 1 == LINE_BUF_SIZE) {
                 *pbuf = '\0';
                 line += buf;
                 pbuf = buf;

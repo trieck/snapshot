@@ -128,24 +128,24 @@ bool EventStore::insert(const Event& event)
     return true;
 }
 
-uint64_t EventStore::hash(const Event& event)
+uint64_t EventStore::hash(const Event& event) const
 {
     return hash(event.getObjectId());
 }
 
-uint64_t EventStore::hash(const std::string& s)
+uint64_t EventStore::hash(const std::string& s) const
 {
     uint32_t digest[SHA1_DIGEST_INTS];
     sha1(s, digest);
     return hash(digest);
 }
 
-uint64_t EventStore::hash(digest_type digest)
+uint64_t EventStore::hash(digest_type digest) const
 {
     return hash(digest, tablesize_);
 }
 
-uint64_t EventStore::hash(digest_type digest, uint64_t m)
+uint64_t EventStore::hash(digest_type digest, uint64_t m) const
 {
     return fnvhash64(digest) % m;
 }
@@ -197,7 +197,7 @@ bool EventStore::update(const Event& event)
     return true;
 }
 
-void EventStore::getDigest(uint64_t bucket, digest_type digest)
+void EventStore::getDigest(uint64_t bucket, digest_type digest) const
 {
     auto bdigest = BUCKET_DIGEST(page_, bucket);
     memcpy(digest, bdigest, sizeof(digest_type));

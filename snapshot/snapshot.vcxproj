@@ -146,6 +146,7 @@
     <ClInclude Include="Partition.h" />
     <ClInclude Include="Partitioner.h" />
     <ClInclude Include="Primes.h" />
+    <ClInclude Include="SnapshotParser.h" />
     <ClInclude Include="Snapshotter.h" />
     <ClInclude Include="SnapshotTree.h" />
     <ClInclude Include="stdafx.h" />
@@ -156,6 +157,7 @@
     <ClCompile Include="Partition.cpp" />
     <ClCompile Include="Partitioner.cpp" />
     <ClCompile Include="snapshot.cpp" />
+    <ClCompile Include="SnapshotParser.cpp" />
     <ClCompile Include="Snapshotter.cpp" />
     <ClCompile Include="SnapshotTree.cpp" />
     <ClCompile Include="stdafx.cpp">

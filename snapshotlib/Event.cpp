@@ -10,6 +10,7 @@ namespace {
     auto constexpr PARENT_OBJECT_ID = "ParentObjectId";
     auto constexpr ROOT_WINDOW_OBJECT_ID = "RootWindowObjectId";
     auto constexpr TREE_CHILDREN = "TreeChildren";
+    auto constexpr INITIAL_SEQUENCE_NUMBER = "InitialSequenceNumber";
 }
 
 Event::Event() : event_(Json::objectValue)
@@ -19,6 +20,7 @@ Event::Event() : event_(Json::objectValue)
 
 Event::Event(const Json::Value& event) : event_(event)
 {
+    setInitialSequenceNumber();
     parseMeta();
 }
 
@@ -177,14 +179,34 @@ bool Event::removeChild(const std::string& objectId)
 
 Event Event::merge(const Event& event) const
 {
-    auto& children = event[TREE_CHILDREN];
-    if (children.isNull())
-        return event;
-
     Event m(*this);
+
+    auto& children = event[TREE_CHILDREN];
     for (Json::ValueConstIterator it = children.begin(); it != children.end(); it++) {
         m.addChild((*it).asString());
     }
 
+    m.copyInitialSequenceNumber(event);
+
     return m;
+}
+
+const Json::Value& Event::children() const
+{
+    return (*this)[TREE_CHILDREN];
+}
+
+void Event::setInitialSequenceNumber()
+{
+    if (event_[INITIAL_SEQUENCE_NUMBER].isNull()) {
+        event_[INITIAL_SEQUENCE_NUMBER] = event_[EVENT_SEQUENCE_NUMBER];
+    }
+}
+
+void Event::copyInitialSequenceNumber(const Event& event)
+{
+    auto& initialSequenceNumber = event[INITIAL_SEQUENCE_NUMBER];
+    if (!initialSequenceNumber.isNull()) {
+        event_[INITIAL_SEQUENCE_NUMBER] = initialSequenceNumber;
+    }
 }
