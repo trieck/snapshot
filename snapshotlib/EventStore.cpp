@@ -256,8 +256,6 @@ bool EventStore::isfull() const
 
 void EventStore::resize()
 {
-    cout << "resizing..";
-
     EventStore store;
     auto newsize = static_cast<uint32_t>(tablesize_ * 2);
     store.mktable(std::tmpnam(nullptr), newsize);
@@ -286,8 +284,6 @@ void EventStore::resize()
     tablesize_ = store.tablesize_;
     nbpages_ = store.nbpages_;
     perm_ = store.perm_;
-
-    cout << "complete." << endl;
 }
 
 bool EventStore::transfer(LPBUCKET pbucket)

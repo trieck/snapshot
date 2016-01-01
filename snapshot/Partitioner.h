@@ -16,13 +16,11 @@ public:
     PartitionVec merge();
 
 private:
-    using EventVec = std::vector<Event>;
-
     EventVec& lookup(const Event& event);
     static std::string getKey(const Event& event);
 
     void flush(const std::string& key, std::vector<Event>& value);
-    void sort(std::vector<Event>& vec);
+    void sort(EventVec& vec);
 
     PartitionVec& getPartitions(const std::string& key);
 

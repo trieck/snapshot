@@ -16,6 +16,7 @@ public:
     const Json::Value& getEvent() const;
 
     uint64_t getSequenceNumber() const;
+    uint64_t initialSequenceNumber() const;
     std::string getObjectId() const;
     std::string getParentId() const;
     std::string getRootId() const;

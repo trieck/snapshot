@@ -84,6 +84,11 @@ uint64_t Event::getSequenceNumber() const
     return (*this)[EVENT_SEQUENCE_NUMBER].asUInt64();
 }
 
+uint64_t Event::initialSequenceNumber() const
+{
+    return (*this)[INITIAL_SEQUENCE_NUMBER].asUInt64();
+}
+
 std::string Event::getObjectId() const
 {
     return getMeta(OBJECT_ID).asString();

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "SnapshotTree.h"
+#include "radixsort.h"
 
 namespace {
     const std::regex CREATED("Created");
@@ -7,6 +8,17 @@ namespace {
     const std::regex REPARENTED("Reparented");
     const std::regex SNAP_EVENT("Click|DoubleClick|GotFocus|LostFocus|SelectedIndexChanged|UserModified|CellValueChanged");
 }
+
+struct InitialSeqPred : public std::unary_function<const Event&, bool> {
+    typedef uint64_t KEY_TYPE;
+    KEY_TYPE bit_;
+
+    InitialSeqPred(KEY_TYPE bit) : bit_(bit) {}
+    inline bool operator() (const Event& event) const {
+        auto num = event.initialSequenceNumber();
+        return !(num & (1ULL << bit_));
+    }
+};
 
 SnapshotTree::SnapshotTree()
 {
@@ -136,9 +148,9 @@ void SnapshotTree::reparent(const Event& event)
 
 void SnapshotTree::snapshot(const Event & event)
 {
-    SnapshotParser parser; 
-    
-    update(event);    
+    SnapshotParser parser;
+
+    update(event);
     parse(parser, event);
 }
 
@@ -171,13 +183,15 @@ EventVec SnapshotTree::sortedChildren(const Event& event)
 {
     EventVec output;
 
-    auto& children = event.children();
+    const auto& children = event.children();
     for (Json::ValueConstIterator it = children.begin(); it != children.end(); it++) {
         Event child;
         if (store_.find((*it).asString(), child)) {
             output.push_back(child);
         }
     }
+
+    radixsort<InitialSeqPred>(output.begin(), output.end());
 
     return output;
 }

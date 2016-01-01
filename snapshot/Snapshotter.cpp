@@ -71,5 +71,4 @@ void Snapshotter::snapshot(const PartitionPtr& partition)
 {
     SnapshotTree tree;
     tree.snapshot(partition.get());
-    tree.stats();
 }

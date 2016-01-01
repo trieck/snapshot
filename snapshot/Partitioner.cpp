@@ -78,7 +78,7 @@ void Partitioner::flush(const std::string& key, std::vector<Event>& vec)
     partitions.push_back(std::move(partition));
 }
 
-void Partitioner::sort(std::vector<Event>& vec)
+void Partitioner::sort(EventVec& vec)
 {
     radixsort<EventPred>(vec.begin(), vec.end());
 }
@@ -93,7 +93,7 @@ PartitionVec& Partitioner::getPartitions(const std::string& key)
     }
 }
 
-Partitioner::EventVec& Partitioner::lookup(const Event& event)
+EventVec& Partitioner::lookup(const Event& event)
 {
     std::string key = getKey(event);
 
