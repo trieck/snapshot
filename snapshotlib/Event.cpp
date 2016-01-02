@@ -109,6 +109,16 @@ void Event::setObjectId(const std::string& objectId)
     putMeta(OBJECT_ID, objectId);
 }
 
+void Event::setParentId(const std::string& parentId)
+{
+	putMeta(PARENT_OBJECT_ID, parentId);
+}
+
+void Event::setRootId(const std::string& rootId)
+{
+    putMeta(ROOT_WINDOW_OBJECT_ID, rootId);
+}
+
 void Event::putMeta(const std::string&name, const std::string& value)
 {
     removeMeta(name);
@@ -203,7 +213,7 @@ const Json::Value& Event::children() const
 
 void Event::setInitialSequenceNumber()
 {
-    if (event_[INITIAL_SEQUENCE_NUMBER].isNull()) {
+    if ((*this)[INITIAL_SEQUENCE_NUMBER].isNull() && !(*this)[EVENT_SEQUENCE_NUMBER].isNull()) {
         event_[INITIAL_SEQUENCE_NUMBER] = event_[EVENT_SEQUENCE_NUMBER];
     }
 }

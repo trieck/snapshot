@@ -22,6 +22,8 @@ public:
     std::string getRootId() const;
 
     void setObjectId(const std::string& objectId);
+    void setParentId(const std::string& parentId);
+    void setRootId(const std::string& rootId);
     void putMeta(const std::string& name, const std::string& value);
     void removeMeta(const std::string& name);
     void addChild(const std::string& objectId);

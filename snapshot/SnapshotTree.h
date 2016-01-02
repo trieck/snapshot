@@ -16,11 +16,12 @@ private:
     void process(const Event& event);
     void insert(const Event& event);
     void insert(const Event& event, const std::string& parentId);
-    void addChild(const std::string& parentId, const std::string& objectId);
+    void addChild(const std::string & parentId, const Event& event);
     void parentRemove(const std::string& parentId, const std::string& objectId);
     void destroy(const Event& event);
     void update(const Event& event);
     void reparent(const Event& event);
+    void reparent(const Event& from, const Event& to);
     void snapshot(const Event& event);
     void parse(SnapshotParser& parser, const Event& event);
     void parseNode(SnapshotParser& parser, const Event& node);

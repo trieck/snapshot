@@ -88,13 +88,22 @@ void SnapshotTree::insert(const Event& event)
 void SnapshotTree::insert(const Event& event, const std::string& parentId)
 {
     store_.insert(event);
-    addChild(parentId, event.getObjectId());
+    addChild(parentId, event);
 }
 
-void SnapshotTree::addChild(const std::string& parentId, const std::string& objectId)
+void SnapshotTree::addChild(const std::string& parentId, const Event& event)
 {
+    auto objectId = event.getObjectId();
+    if (objectId == parentId)
+        return;
+
+    auto rootId = event.getRootId();
+
     Event parent;
     if (!store_.find(parentId, parent)) {
+        if (rootId != parentId)
+            parent.setParentId(rootId);
+        parent.setRootId(rootId);
         parent.setObjectId(parentId);
         parent.addChild(objectId);
         store_.insert(parent);
@@ -120,9 +129,11 @@ void SnapshotTree::destroy(const Event& event)
 
 void SnapshotTree::update(const Event& event)
 {
-    Event u;
+    Event u, m;
     if (store_.find(event.getObjectId(), u)) {
-        store_.update(event.merge(u));
+        reparent(u, event);
+        m = event.merge(u);
+        store_.update(m);
     } else {
         store_.insert(event);
     }
@@ -134,24 +145,28 @@ void SnapshotTree::reparent(const Event& event)
     auto objectId = event.getObjectId();
 
     if (store_.find(objectId, u)) {
-        auto oldParentId = u.getParentId();
-        auto newParentId = event.getParentId();
-        if (oldParentId.length()) {
-            parentRemove(oldParentId, objectId);
-        }
-        addChild(newParentId, objectId);
-        update(event);
+        reparent(u, event);
+        store_.update(event);
     } else {
         insert(event);
+    }
+}
+
+void SnapshotTree::reparent(const Event& from, const Event& to)
+{
+    auto oldParentId = from.getParentId();
+    auto newParentId = to.getParentId();
+
+    if (oldParentId != newParentId) {
+        parentRemove(oldParentId, to.getObjectId());
+        addChild(newParentId, to);
     }
 }
 
 void SnapshotTree::snapshot(const Event & event)
 {
     SnapshotParser parser;
-
     update(event);
-    parse(parser, event);
 }
 
 void SnapshotTree::parse(SnapshotParser& parser, const Event& event)
