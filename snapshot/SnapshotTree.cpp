@@ -107,6 +107,8 @@ void SnapshotTree::addChild(const std::string& parentId, const Event& event)
         parent.setObjectId(parentId);
         parent.addChild(objectId);
         store_.insert(parent);
+        if (rootId != parentId)
+            addChild(rootId, parent);
     } else {
         parent.addChild(objectId);
         store_.update(parent);
@@ -125,6 +127,7 @@ void SnapshotTree::parentRemove(const std::string& parentId, const std::string& 
 void SnapshotTree::destroy(const Event& event)
 {
     store_.destroy(event);
+    parentRemove(event.getParentId(), event.getObjectId());
 }
 
 void SnapshotTree::update(const Event& event)
@@ -157,7 +160,7 @@ void SnapshotTree::reparent(const Event& from, const Event& to)
     auto oldParentId = from.getParentId();
     auto newParentId = to.getParentId();
 
-    if (oldParentId != newParentId) {
+    if (oldParentId.length() && newParentId.length() && oldParentId != newParentId) {
         parentRemove(oldParentId, to.getObjectId());
         addChild(newParentId, to);
     }
@@ -167,6 +170,7 @@ void SnapshotTree::snapshot(const Event & event)
 {
     SnapshotParser parser;
     update(event);
+    parse(parser, event);
 }
 
 void SnapshotTree::parse(SnapshotParser& parser, const Event& event)
