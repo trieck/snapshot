@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="schema">
+      <UniqueIdentifier>{65097284-8b97-4b5c-9714-582f253e9c24}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -60,6 +63,9 @@
     <ClInclude Include="EventStore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EventBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util.cpp">
@@ -101,5 +107,13 @@
     <ClCompile Include="EventStore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EventBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\schema\event.fbs">
+      <Filter>schema</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

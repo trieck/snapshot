@@ -1,0 +1,20 @@
+
+table FBMeta {
+  name: string;
+  value: string;
+}
+
+table FBEvent {
+  name:string;
+  sequence: ulong;
+  source: string;
+  operation_id: string;
+  process_id: ulong;
+  session_id: string;
+  time_stamp: string;
+  time_zone_name: string;
+  user_id: string;
+  metadata: [FBMeta];
+}
+
+root_type FBEvent;

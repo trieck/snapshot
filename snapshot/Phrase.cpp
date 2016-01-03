@@ -5,12 +5,12 @@ Phrase::Phrase(const std::string& text, PhraseStatus status) : text_(text), stat
 {
 }
 
-Phrase::Phrase(const Phrase & rhs)
+Phrase::Phrase(const Phrase& rhs)
 {
     *this = rhs;
 }
 
-Phrase & Phrase::operator=(const Phrase & rhs)
+Phrase& Phrase::operator=(const Phrase& rhs)
 {
     if (this != &rhs) {
         text_ = rhs.text_;

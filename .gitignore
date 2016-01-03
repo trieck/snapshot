@@ -12,3 +12,4 @@ Release/
 *.jsonl
 *.user
 /*.txt
+/snapshotlib/event_generated.h
