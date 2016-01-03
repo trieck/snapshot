@@ -183,6 +183,8 @@ void SnapshotTree::parse(SnapshotParser& parser, const Event& event)
 
 void SnapshotTree::parseNode(SnapshotParser& parser, const Event& node)
 {
+    parser.parse(node);
+
     auto children = sortedChildren(node);
     for (const auto& child : children) {
         parseNode(parser, child);

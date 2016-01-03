@@ -145,6 +145,7 @@
     <ClInclude Include="Merger.h" />
     <ClInclude Include="Partition.h" />
     <ClInclude Include="Partitioner.h" />
+    <ClInclude Include="Phrase.h" />
     <ClInclude Include="Primes.h" />
     <ClInclude Include="SnapshotParser.h" />
     <ClInclude Include="Snapshotter.h" />
@@ -156,6 +157,7 @@
     <ClCompile Include="Merger.cpp" />
     <ClCompile Include="Partition.cpp" />
     <ClCompile Include="Partitioner.cpp" />
+    <ClCompile Include="Phrase.cpp" />
     <ClCompile Include="snapshot.cpp" />
     <ClCompile Include="SnapshotParser.cpp" />
     <ClCompile Include="Snapshotter.cpp" />
