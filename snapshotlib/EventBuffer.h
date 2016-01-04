@@ -20,6 +20,7 @@ public:
     static EventBufferPtr makeBuffer(const ByteBuffer& buffer);
 
     const FBEvent* getEvent() const;
+    std::string getMeta(const char* key) const;
 
     operator uint8_t*() const;
     uint32_t size() const;

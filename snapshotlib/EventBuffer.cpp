@@ -68,6 +68,21 @@ const FBEvent* EventBuffer::getEvent() const
     return GetFBEvent(builder_.GetBufferPointer());
 }
 
+std::string EventBuffer::getMeta(const char* key) const
+{
+    auto metadata = getEvent()->metadata();
+    
+    if (metadata && metadata->size()) {
+        for (auto it = metadata->begin(); it != metadata->end(); ++it) {
+            if (strcmp(it->name()->c_str(), key) == 0) {
+                return it->value()->c_str();
+            }
+        }
+    }
+
+    return "";
+}
+
 EventBufferPtr EventBuffer::makeBuffer(const Event& event)
 {
     return EventBufferPtr(new EventBuffer(event));
