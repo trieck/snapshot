@@ -3,14 +3,16 @@
 #include "BlockIO.h"
 #include "Event.h"
 #include "EventWriter.h"
+#include "EventBuffer.h"
 
 // ensure one byte alignment for structures below
 #pragma pack (push, 1)
 
 typedef struct Datum {                  // 512-byte datum
     uint64_t next;                      // next datum if linked
-    uint64_t length;                    // total datum length
-    char data[496];                     // first 496 bytes of data
+    uint32_t totalLength;               // total length of datum
+    uint32_t length;                    // length of this datum segment
+    uint8_t data[496];                  // first 496 bytes of data
 } *LPDATUM;
 
 typedef struct DataPage {               // data page
@@ -31,21 +33,19 @@ public:
 
     void writeEvent(const Event& event, uint64_t& offset);
     void updateEvent(const Event& event, uint64_t offset);
-    void readVal(uint64_t offset, std::string& value); 
+    void readVal(uint64_t offset, EventBufferPtr& event);
 
 private:
-    void writeValue(const char* pval, int length, uint64_t& offset);
-    void updateValue(const char* pval, int length, uint64_t offset);
-    
+    void writeValue(const uint8_t* bytes, int totalLength, int length, uint64_t& offset);
+    void updateValue(const uint8_t* bytes, int totalLength, uint64_t offset);
+
     void newpage();
     uint64_t datumoffset() const;
     uint64_t datumoffset(uint64_t pageno, uint8_t datum) const;
     uint64_t nextdatumoffset() const;
     void newdatum();
 
-    std::string filename_;      // file name
     BlockIO io_;                // block i/o
-    EventWriter writer_;        // event writer
     uint64_t dpageno_;          // current data page while writing
     uint8_t ddatum_;            // current datum on data page while writing
     LPDATAPAGE dpage_;          // data page

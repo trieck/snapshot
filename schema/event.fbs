@@ -7,6 +7,7 @@ table FBMeta {
 table FBEvent {
   name:string;
   sequence: ulong;
+  initial_sequence: ulong;
   source: string;
   operation_id: string;
   process_id: ulong;
@@ -14,6 +15,7 @@ table FBEvent {
   time_stamp: string;
   time_zone_name: string;
   user_id: string;
+  tree_children: [string];
   metadata: [FBMeta];
 }
 

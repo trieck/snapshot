@@ -1,5 +1,6 @@
 #include "snapshotlib.h"
 #include "Event.h"
+#include "EventBuffer.h"
 
 namespace {
     auto constexpr METADATA = "METADATA";
@@ -16,6 +17,11 @@ namespace {
 Event::Event() : event_(Json::objectValue)
 {
     event_[METADATA] = Json::arrayValue;
+}
+
+Event::Event(EventBufferPtr& buffer)
+{
+    *this = buffer;
 }
 
 Event::Event(const Json::Value& event) : event_(event)
@@ -42,6 +48,39 @@ Event & Event::operator=(const Event& rhs)
     return *this;
 }
 
+Event & Event::operator=(EventBufferPtr& buffer)
+{
+    clear();
+
+    auto event = buffer->getEvent();
+    
+    copyStringField("EVENT_NAME", event->name());
+    event_["EVENT_SEQUENCE_NUMBER"] = event->sequence();
+    copyStringField("EVENT_SOURCE", event->source());
+    copyStringField("OPERATION_ID", event->operation_id());
+    event_["PROCESS_ID"] = event->process_id();
+    copyStringField("SESSION_ID", event->session_id());
+    copyStringField("TIME_STAMP", event->time_stamp());
+    copyStringField("TIME_ZONE_NAME", event->time_zone_name());
+    copyStringField("USER_ID", event->user_id());
+    copyChildren(event->tree_children());
+
+    if (event->initial_sequence()) {
+        event_["INITIAL_SEQUENCE_NUMBER"] = event->initial_sequence();
+    }
+
+    auto metadata = event->metadata();
+    if (metadata && metadata->size()) {
+        for (auto it = metadata->begin(); it != metadata->end(); ++it) {
+            auto name = (*it)->name();
+            auto value = (*it)->value();
+            putMeta(name->c_str(), value->c_str());
+        }
+    }
+
+    return *this;
+}
+
 const Json::Value& Event::operator[](const char* key) const
 {
     return event_[key];
@@ -61,6 +100,23 @@ void Event::parseMeta()
         auto name = meta[i][METADATA_NAME].asString();
         auto& value = meta[i][METADATA_VALUE];
         meta_.insert(std::pair<std::string, Json::Value>{name, value});
+    }
+}
+
+void Event::copyStringField(const char* fieldName, const flatbuffers::String* source)
+{
+    if (source != nullptr) {
+        event_[fieldName] = source->c_str();
+    }
+}
+
+void Event::copyChildren(const FBStringVec* children)
+{
+    if (children == nullptr)
+        return;
+
+    for (auto it = children->begin(); it != children->end(); ++it) {
+        addChild(it->c_str());
     }
 }
 
@@ -160,18 +216,24 @@ void Event::addChild(const std::string& objectId)
     }
 }
 
-bool Event::hasChild(const std::string& objectId)
+bool Event::hasChild(const std::string& objectId) const
 {
-    auto& children = event_[TREE_CHILDREN];
+    auto& children = (*this)[TREE_CHILDREN];
     if (!children.isArray())
         return false;
 
-    for (Json::ValueIterator it = children.begin(); it != children.end(); it++) {
+    for (auto it = children.begin(); it != children.end(); it++) {
         if (*it == objectId)
             return true;
     }
 
     return false;
+}
+
+bool Event::hasChildren() const
+{
+    auto& children = (*this)[TREE_CHILDREN];
+    return children.isArray();
 }
 
 bool Event::removeChild(const std::string& objectId)
@@ -209,6 +271,12 @@ Event Event::merge(const Event& event) const
 const Json::Value& Event::children() const
 {
     return (*this)[TREE_CHILDREN];
+}
+
+void Event::clear()
+{
+    event_.clear();
+    meta_.clear();
 }
 
 void Event::setInitialSequenceNumber()

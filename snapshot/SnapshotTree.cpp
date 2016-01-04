@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SnapshotTree.h"
 #include "radixsort.h"
+#include "Timer.h"
 
 namespace {
     const std::regex CREATED("Created");
@@ -168,26 +169,34 @@ void SnapshotTree::reparent(const Event& from, const Event& to)
 
 void SnapshotTree::snapshot(const Event & event)
 {
+    Timer t;
+    cout << "snapshotting object id: " + event.getObjectId() << "...";
+
     SnapshotParser parser;
     update(event);
-    parse(parser, event);
+
+    int count = 0;
+    parse(parser, event, count);
+
+    cout << "parsed " << comma(count) << " nodes in " << t << endl;
 }
 
-void SnapshotTree::parse(SnapshotParser& parser, const Event& event)
+void SnapshotTree::parse(SnapshotParser& parser, const Event& event, int &count)
 {
     Event root;
     if (store_.find(event.getRootId(), root)) {
-        parseNode(parser, root);
+        parseNode(parser, root, count);
     }
 }
 
-void SnapshotTree::parseNode(SnapshotParser& parser, const Event& node)
+void SnapshotTree::parseNode(SnapshotParser& parser, const Event& node, int& count)
 {
     parser.parse(node);
+    ++count;
 
     auto children = sortedChildren(node);
     for (const auto& child : children) {
-        parseNode(parser, child);
+        parseNode(parser, child, count);
     }
 }
 

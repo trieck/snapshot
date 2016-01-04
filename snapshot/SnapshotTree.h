@@ -23,8 +23,8 @@ private:
     void reparent(const Event& event);
     void reparent(const Event& from, const Event& to);
     void snapshot(const Event& event);
-    void parse(SnapshotParser& parser, const Event& event);
-    void parseNode(SnapshotParser& parser, const Event& node);
+    void parse(SnapshotParser& parser, const Event& event, int& count);
+    void parseNode(SnapshotParser& parser, const Event& node, int& count);
     std::string getParentId(const Event& event) const;
     EventVec sortedChildren(const Event& event);
     EventStore store_;

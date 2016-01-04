@@ -53,7 +53,7 @@ PartitionPtr Merger::mergeonce(size_t argc, PartitionVec::const_iterator it)
         recs[i]->stream->open(std::ios::in);
     }
 
-    recs[argc] = NULL;
+    recs[argc] = nullptr;
 
     mergerec** list = recs;
 
@@ -100,7 +100,7 @@ mergerec** Merger::least(mergerec** recs)
         }
     }
 
-    array[j] = NULL;
+    array[j] = nullptr;
 
     return array;
 }

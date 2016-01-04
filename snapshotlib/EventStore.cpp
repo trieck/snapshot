@@ -85,18 +85,11 @@ bool EventStore::find(const std::string& key)
 
 bool EventStore::find(const std::string& key, Event& event)
 {
-    std::string value;
-    if (!lookup(key, value))
+    EventBufferPtr buffer;
+    if (!lookup(key, buffer))
         return false;
 
-    Json::Reader reader;
-    Json::Value oValue;
-    if (!reader.parse(value, oValue, false)) {
-        boost::format message = boost::format("can't parse event for object id: \"%s\".") % key;
-        throw std::exception(message.str().c_str());
-    }
-
-    event = Event(oValue);
+    event = buffer;
 
     return true;
 }
@@ -150,10 +143,8 @@ uint64_t EventStore::hash(digest_type digest, uint64_t m) const
     return fnvhash64(digest) % m;
 }
 
-bool EventStore::lookup(const std::string& key, std::string& value)
+bool EventStore::lookup(const std::string& key, EventBufferPtr& event)
 {
-    value.clear();
-
     uint64_t pageno, bucket;
     if (!getBucket(key, pageno, bucket))
         return false;
@@ -163,7 +154,7 @@ bool EventStore::lookup(const std::string& key, std::string& value)
 
     auto offset = BUCKET_DATUM(page_, bucket);
 
-    repo_.readVal(offset, value);
+    repo_.readVal(offset, event);
 
     return true;
 }

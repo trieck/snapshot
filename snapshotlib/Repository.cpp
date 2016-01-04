@@ -1,10 +1,12 @@
 #include "snapshotlib.h"
 #include "Repository.h"
+#include "ByteBuffer.h"
 
 // datum macros
-#define DATUM_NEXT(p, d)        (p->data[d].next)
-#define DATUM_LENGTH(p, d)      (p->data[d].length)
-#define DATUM_PTR(p, d)         (p->data[d].data)
+#define DATUM_NEXT(p, d)            (p->data[d].next)
+#define DATUM_TOTAL_LENGTH(p, d)    (p->data[d].totalLength)
+#define DATUM_LENGTH(p, d)          (p->data[d].length)
+#define DATUM_PTR(p, d)             (p->data[d].data)
 
 auto constexpr DATUM_PER_PAGE = BlockIO::BLOCK_SIZE / sizeof(Datum);
 
@@ -21,7 +23,6 @@ Repository::~Repository()
 
 void Repository::open(const char* filename)
 {
-    filename_ = filename;
     io_.open(filename, std::ios::in | std::ios::out | std::ios::trunc);
     io_.writeblock(dpageno_, dpage_);
 }
@@ -33,9 +34,40 @@ void Repository::close()
 
 void Repository::writeEvent(const Event& event, uint64_t& offset)
 {
-    auto value = writer_.write(event);
-    auto length = static_cast<int>(value.length());
-    writeValue(value.c_str(), length, offset);
+    EventBufferPtr buffer = EventBuffer::makeBuffer(event);
+    writeValue(*buffer, buffer->size(), buffer->size(), offset);
+}
+
+void Repository::writeValue(const uint8_t* bytes, int totalLength, int length, uint64_t& offset)
+{
+    offset = datumoffset();
+
+    io_.readblock(dpageno_, dpage_);
+
+    constexpr auto avail = static_cast<int>(sizeof(Datum::data));
+
+    for (auto i = 0; length > 0; ++i) {
+        if (i > 0) {
+            DATUM_NEXT(dpage_, ddatum_) = nextdatumoffset();
+            newdatum();
+        }
+
+        auto written = 0, nlength = std::min(length, avail);
+        auto ptr = DATUM_PTR(dpage_, ddatum_);
+        while (nlength > 0) {
+            *ptr++ = *bytes++;
+            nlength--;
+            written++;
+        }
+
+        DATUM_TOTAL_LENGTH(dpage_, ddatum_) = totalLength;
+        DATUM_LENGTH(dpage_, ddatum_) = written;
+        length -= written;
+    }
+
+    io_.writeblock(dpageno_, dpage_);
+
+    newdatum();
 }
 
 void Repository::newpage()
@@ -74,47 +106,13 @@ void Repository::newdatum()
     }
 }
 
-void Repository::writeValue(const char* pval, int length, uint64_t& offset)
-{
-    offset = datumoffset();
-
-    io_.readblock(dpageno_, dpage_);
-
-    constexpr auto avail = static_cast<int>(sizeof(Datum::data));
-
-    int written = 0;
-    for (auto i = 0, written = 0; length > 0; ++i) {
-        if (i > 0) {
-            DATUM_NEXT(dpage_, ddatum_) = nextdatumoffset();
-            newdatum();
-            written = 0;
-        }
-
-        auto nlength = std::min(length, avail);
-        auto ptr = DATUM_PTR(dpage_, ddatum_);
-        while (nlength > 0) {
-            *ptr++ = *pval++;
-            nlength--;
-            written++;
-        }
-
-        DATUM_LENGTH(dpage_, ddatum_) = written;
-        length -= written;
-    }
-
-    io_.writeblock(dpageno_, dpage_);
-
-    newdatum();
-}
-
 void Repository::updateEvent(const Event& event, uint64_t offset)
 {
-    auto value = writer_.write(event);
-    auto length = static_cast<int>(value.length());
-    updateValue(value.c_str(), length, offset);
+    EventBufferPtr buffer = EventBuffer::makeBuffer(event);
+    updateValue(*buffer, buffer->size(), offset);
 }
 
-void Repository::updateValue(const char* pval, int length, uint64_t offset)
+void Repository::updateValue(const uint8_t* bytes, int totalLength, uint64_t offset)
 {
     uint64_t pageno = offset / BlockIO::BLOCK_SIZE;
     uint64_t datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
@@ -123,12 +121,12 @@ void Repository::updateValue(const char* pval, int length, uint64_t offset)
 
     constexpr auto avail = static_cast<int>(sizeof(Datum::data));
 
-    for (auto i = 0, written = 0; length > 0; ++i) {
+    for (auto i = 0, length = totalLength; length > 0; ++i) {
         if (i > 0) {
             if ((offset = DATUM_NEXT(dpage_, datum)) == 0) {
                 DATUM_NEXT(dpage_, datum) = datumoffset();
                 io_.writeblock(pageno, dpage_);
-                writeValue(pval, length, offset);
+                writeValue(bytes, totalLength, length, offset);
                 return;
             } else {
                 io_.writeblock(pageno, dpage_);
@@ -136,13 +134,12 @@ void Repository::updateValue(const char* pval, int length, uint64_t offset)
                 datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
                 io_.readblock(pageno, dpage_);
             }
-            written = 0;
         }
 
-        auto nlength = std::min(length, avail);
+        auto written = 0, nlength = std::min(length, avail);
         auto ptr = DATUM_PTR(dpage_, datum);
         while (nlength > 0) {
-            *ptr++ = *pval++;
+            *ptr++ = *bytes++;
             nlength--;
             written++;
         }
@@ -153,31 +150,43 @@ void Repository::updateValue(const char* pval, int length, uint64_t offset)
             nlength--;
         }
 
+        DATUM_TOTAL_LENGTH(dpage_, datum) = totalLength;
         DATUM_LENGTH(dpage_, datum) = written;
-        length -= written;
+        if ((length -= written) == 0) {
+            DATUM_NEXT(dpage_, datum) = 0;
+        }
     }
 
     io_.writeblock(pageno, dpage_);
 }
 
-void Repository::readVal(uint64_t offset, std::string& value)
+void Repository::readVal(uint64_t offset, EventBufferPtr& event)
 {
-    std::ostringstream ss;
-
     uint64_t pageno, datum;
 
-    do {
+    pageno = offset / BlockIO::BLOCK_SIZE;
+    datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
+    io_.readblock(pageno, dpage_);
+
+    ByteBuffer buffer(DATUM_TOTAL_LENGTH(dpage_, datum));
+
+    for (;;) {
+        auto ptr = DATUM_PTR(dpage_, datum);
+        auto length = static_cast<int>(DATUM_LENGTH(dpage_, datum));
+
+        while (length > 0) {
+            buffer << *ptr++;
+            length--;
+        }
+
+        if ((offset = DATUM_NEXT(dpage_, datum)) == 0)
+            break;
+
         pageno = offset / BlockIO::BLOCK_SIZE;
         datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
         io_.readblock(pageno, dpage_);
+    }
 
-        auto ptr = DATUM_PTR(dpage_, datum);
-        auto length = static_cast<int>(DATUM_LENGTH(dpage_, datum));
-        while (length > 0) {
-            ss << *ptr++;
-            length--;
-        }
-    } while ((offset = DATUM_NEXT(dpage_, datum)));
-
-    value = ss.str();
+    event = EventBuffer::makeBuffer(buffer);
 }
+

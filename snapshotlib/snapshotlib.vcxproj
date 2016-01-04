@@ -133,6 +133,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BlockIO.h" />
+    <ClInclude Include="ByteBuffer.h" />
     <ClInclude Include="EventBuffer.h" />
     <ClInclude Include="fnvhash.h" />
     <ClInclude Include="Event.h" />
@@ -151,6 +152,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BlockIO.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">snapshotlib.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">snapshotlib.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">snapshotlib.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">snapshotlib.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="ByteBuffer.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">snapshotlib.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">snapshotlib.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">snapshotlib.h</PrecompiledHeaderFile>

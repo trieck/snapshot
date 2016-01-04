@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Event.h"
+#include "ByteBuffer.h"
 #include "event_generated.h"
 
 class EventBuffer;
@@ -15,6 +16,8 @@ public:
     EventBuffer& operator = (const EventBuffer& rhs) = delete;
     
     static EventBufferPtr makeBuffer(const Event& event);
+    static EventBufferPtr makeBuffer(const uint8_t* ptr, uint32_t size);
+    static EventBufferPtr makeBuffer(const ByteBuffer& buffer);
 
     const FBEvent* getEvent() const;
 
