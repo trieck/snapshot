@@ -37,7 +37,8 @@ public:
     std::string filename() const;
     bool find(const Event& event);
     bool find(const std::string& key);
-    bool find(const std::string&key, Event& event);
+    bool find(const std::string& key, Event& event);
+    bool find(const std::string& key, EventBufferPtr& buffer);
     bool insert(const Event& event);
     bool destroy(const Event& event);
     bool update(const Event& event);

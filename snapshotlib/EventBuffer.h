@@ -32,3 +32,5 @@ private:
     flatbuffers::FlatBufferBuilder builder_;
 };
 
+using EventBufferVec = std::vector<EventBufferPtr>;
+

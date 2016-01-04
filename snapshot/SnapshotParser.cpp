@@ -18,23 +18,6 @@ void SnapshotParser::addPhrase(const std::string& phrase, Phrase::PhraseStatus s
     phrases_.push_back({ text, status });
 }
 
-void SnapshotParser::parse(const Event& event)
+void SnapshotParser::parse(const EventBufferPtr& event)
 {
-    auto text = event.getMeta("Text").asString();
-    auto value = event.getMeta("Value").asString();
-    auto targetType = event.getMeta("NormalTargetType").asString();
-
-    if (!boost::empty(text) && (
-        boost::iequals(targetType, "Form") ||
-        boost::iequals(targetType, "Mdi Child"))) {
-        addPhrase(text, Phrase::PhraseStatus::Title);
-    } else if (!boost::empty(text)) {
-        addPhrase(text, Phrase::PhraseStatus::Regular);
-    }
-
-    if (!boost::empty(value) && !boost::equals(text, value)) {
-        // TODO: parse xml
-
-        addPhrase(value, Phrase::PhraseStatus::Regular);
-    }
 }

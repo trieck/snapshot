@@ -10,13 +10,14 @@ namespace {
     const std::regex SNAP_EVENT("Click|DoubleClick|GotFocus|LostFocus|SelectedIndexChanged|UserModified|CellValueChanged");
 }
 
-struct InitialSeqPred : public std::unary_function<const Event&, bool> {
+struct InitialSeqPred : public std::unary_function<const EventBufferPtr&, bool> {
     typedef uint64_t KEY_TYPE;
     KEY_TYPE bit_;
 
     InitialSeqPred(KEY_TYPE bit) : bit_(bit) {}
-    inline bool operator() (const Event& event) const {
-        auto num = event.initialSequenceNumber();
+    inline bool operator() (const EventBufferPtr& buffer) const {
+        auto event = buffer->getEvent();
+        auto num = event->initial_sequence();
         return !(num & (1ULL << bit_));
     }
 };
@@ -183,13 +184,13 @@ void SnapshotTree::snapshot(const Event & event)
 
 void SnapshotTree::parse(SnapshotParser& parser, const Event& event, int &count)
 {
-    Event root;
+    EventBufferPtr root;
     if (store_.find(event.getRootId(), root)) {
         parseNode(parser, root, count);
     }
 }
 
-void SnapshotTree::parseNode(SnapshotParser& parser, const Event& node, int& count)
+void SnapshotTree::parseNode(SnapshotParser& parser, const EventBufferPtr& node, int& count)
 {
     parser.parse(node);
     ++count;
@@ -209,15 +210,18 @@ std::string SnapshotTree::getParentId(const Event& event) const
     return parentId;
 }
 
-EventVec SnapshotTree::sortedChildren(const Event& event)
+EventBufferVec SnapshotTree::sortedChildren(const EventBufferPtr& buffer)
 {
-    EventVec output;
+    EventBufferVec output;
 
-    const auto& children = event.children();
-    for (Json::ValueConstIterator it = children.begin(); it != children.end(); it++) {
-        Event child;
-        if (store_.find((*it).asString(), child)) {
-            output.push_back(child);
+    const auto children = buffer->getEvent()->tree_children();
+    if (children == nullptr)
+        return output;
+
+    EventBufferPtr child;
+    for (auto it = children->begin(); it != children->end(); ++it) {
+        if (store_.find(it->c_str(), child)) {
+            output.push_back(std::move(child));
         }
     }
 

@@ -86,10 +86,26 @@ bool EventStore::find(const std::string& key)
 bool EventStore::find(const std::string& key, Event& event)
 {
     EventBufferPtr buffer;
-    if (!lookup(key, buffer))
+    if (!find(key, buffer))
         return false;
 
     event = buffer;
+
+    return true;
+}
+
+bool EventStore::find(const std::string & key, EventBufferPtr& event)
+{
+    uint64_t pageno, bucket;
+    if (!getBucket(key, pageno, bucket))
+        return false;
+
+    if (IS_DELETED(page_, bucket))
+        return false;
+
+    auto offset = BUCKET_DATUM(page_, bucket);
+
+    repo_.readVal(offset, event);
 
     return true;
 }
@@ -141,22 +157,6 @@ uint64_t EventStore::hash(digest_type digest) const
 uint64_t EventStore::hash(digest_type digest, uint64_t m) const
 {
     return fnvhash64(digest) % m;
-}
-
-bool EventStore::lookup(const std::string& key, EventBufferPtr& event)
-{
-    uint64_t pageno, bucket;
-    if (!getBucket(key, pageno, bucket))
-        return false;
-
-    if (IS_DELETED(page_, bucket))
-        return false;
-
-    auto offset = BUCKET_DATUM(page_, bucket);
-
-    repo_.readVal(offset, event);
-
-    return true;
 }
 
 bool EventStore::destroy(const Event& event)
