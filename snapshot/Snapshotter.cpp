@@ -26,7 +26,7 @@ void Snapshotter::partition(const char* file)
     std::ifstream stream(file);
     if (!stream.is_open()) {
         boost::format message = boost::format("unable to open file \"%s\".") % file;
-        throw std::exception(message.str().c_str());
+        throw std::runtime_error(message.str().c_str());
     }
 
     Json::Reader reader;

@@ -24,7 +24,7 @@ void Partition::open(OpenMode mode)
     stream_.open(name_, mode);
     if (!stream_.is_open()) {
         boost::format message = boost::format("unable to open file \"%s\".") % name_;
-        throw std::exception(message.str().c_str());
+        throw std::runtime_error(message.str().c_str());
     }
 }
 

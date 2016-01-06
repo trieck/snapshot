@@ -170,34 +170,25 @@ void SnapshotTree::reparent(const Event& from, const Event& to)
 
 void SnapshotTree::snapshot(const Event & event)
 {
-    Timer t;
-    cout << "snapshotting object id: " + event.getObjectId() << "...";
-
-    SnapshotParser parser;
     update(event);
-
-    int count = 0;
-    parse(parser, event, count);
-
-    cout << "parsed " << comma(count) << " nodes in " << t << endl;
+    SnapshotParser parser;
+    parse(parser, event);
 }
 
-void SnapshotTree::parse(SnapshotParser& parser, const Event& event, int &count)
+void SnapshotTree::parse(SnapshotParser& parser, const Event& event)
 {
     EventBufferPtr root;
     if (store_.find(event.getRootId(), root)) {
-        parseNode(parser, root, count);
+        parseNode(parser, root);
     }
 }
 
-void SnapshotTree::parseNode(SnapshotParser& parser, const EventBufferPtr& node, int& count)
+void SnapshotTree::parseNode(SnapshotParser& parser, const EventBufferPtr& node)
 {
     parser.parse(node);
-    ++count;
-
     auto children = sortedChildren(node);
     for (const auto& child : children) {
-        parseNode(parser, child, count);
+        parseNode(parser, child);
     }
 }
 
