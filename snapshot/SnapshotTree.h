@@ -3,6 +3,7 @@
 #include "EventStore.h"
 #include "Partition.h"
 #include "SnapshotParser.h"
+#include <EventBuffer.h>
 
 class SnapshotTree
 {

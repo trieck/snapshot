@@ -146,7 +146,6 @@
     <ClInclude Include="Partition.h" />
     <ClInclude Include="Partitioner.h" />
     <ClInclude Include="Phrase.h" />
-    <ClInclude Include="Primes.h" />
     <ClInclude Include="SnapshotParser.h" />
     <ClInclude Include="Snapshotter.h" />
     <ClInclude Include="SnapshotTree.h" />

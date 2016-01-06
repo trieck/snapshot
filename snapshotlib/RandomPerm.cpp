@@ -34,7 +34,7 @@ void RandomPerm::generate(uint64_t n)
     std::random_device rd;
     generator_.seed(rd());
 
-    for (uint64_t i = 0, j = 0; i < n_; ++i) {
+    for (uint64_t i = 0, j; i < n_; ++i) {
         j = uniform(i);
         table_[i] = table_[j];
         table_[j] = i;

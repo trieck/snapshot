@@ -25,7 +25,7 @@ void EventBuffer::construct(const Event& event)
 {
     builder_.Clear();
 
-    auto name = builder_.CreateString(event["EVENT_NAME"].asString());
+    auto ename = builder_.CreateString(event["EVENT_NAME"].asString());
     auto sequence = event["EVENT_SEQUENCE_NUMBER"].asUInt64();
     auto initial_sequence = event["InitialSequenceNumber"].asUInt64();
     auto source = builder_.CreateString(event["EVENT_SOURCE"].asString());
@@ -50,14 +50,14 @@ void EventBuffer::construct(const Event& event)
 
     std::vector<flatbuffers::Offset<flatbuffers::String>> vchildren;
     const auto& children = event["TreeChildren"];
-    for (auto it = children.begin(); it != children.end(); it++) {
+    for (auto it = children.begin(); it != children.end(); ++it) {
         auto child = (*it).asString();
         vchildren.push_back(builder_.CreateString(child));
     }
 
     auto fbchildren = vchildren.size() > 0 ? builder_.CreateVector(vchildren) : 0;
 
-    auto root = CreateFBEvent(builder_, name, sequence, initial_sequence,
+    auto root = CreateFBEvent(builder_, ename, sequence, initial_sequence,
         source, opid, procid, sessionid, time_stamp, time_zone_name, userid, fbchildren, fbmeta);
 
     FinishFBEventBuffer(builder_, root);

@@ -1,6 +1,6 @@
 #pragma once
 
-size_t _fnvhash64(const void *k, size_t len) {
+inline size_t _fnvhash64(const void *k, size_t len) {
     size_t i, hash;
 
     const uint8_t* key = static_cast<const uint8_t*>(k);

@@ -194,7 +194,7 @@ void Event::removeMeta(const std::string& name)
 
     Json::Value def;
     for (Json::ArrayIndex i = 0; i < size; ++i) {
-        auto& v = meta.get(i, def);
+        const auto& v = meta.get(i, def);
         if (v[METADATA_NAME] == name) {
             meta.removeIndex(i, &def);
             break;

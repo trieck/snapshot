@@ -2,8 +2,6 @@
 
 #include "BlockIO.h"
 #include "Event.h"
-#include "EventWriter.h"
-#include "EventBuffer.h"
 
 // ensure one byte alignment for structures below
 #pragma pack (push, 1)

@@ -1,6 +1,7 @@
 #include "snapshotlib.h"
 #include "Repository.h"
 #include "ByteBuffer.h"
+#include "EventBuffer.h"
 
 // datum macros
 #define DATUM_NEXT(p, d)            (p->data[d].next)

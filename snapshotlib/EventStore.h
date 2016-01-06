@@ -55,7 +55,6 @@ private:
     uint64_t hash(digest_type digest, uint64_t tablesize) const;
     void getDigest(uint64_t bucket, digest_type digest) const;
     void setKey(uint64_t bucket, const std::string& key);
-    bool lookup(const std::string& key, EventBufferPtr& event); 
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     bool findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket);
     bool getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket);

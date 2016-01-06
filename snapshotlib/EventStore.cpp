@@ -1,5 +1,8 @@
 #include "snapshotlib.h"
 #include "EventStore.h"
+// ReSharper disable CppUnusedIncludeDirective
+#include "EventBuffer.h"
+// ReSharper restore CppUnusedIncludeDirective
 #include "Primes.h"
 #include "fnvhash.h"
 #include "sha1.h"

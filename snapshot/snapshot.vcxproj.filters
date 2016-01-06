@@ -24,9 +24,6 @@
     <ClInclude Include="Snapshotter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Primes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Partitioner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
