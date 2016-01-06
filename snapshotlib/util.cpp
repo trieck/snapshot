@@ -13,7 +13,7 @@ std::string comma(uint64_t i)
 
     std::ostringstream ss;
     ss << i;
-    std::string input = ss.str();
+    auto input = ss.str();
 
     auto n = static_cast<int>(input.length());
 
@@ -23,8 +23,8 @@ std::string comma(uint64_t i)
             os << ',';
     }
 
-    std::string output(os.str());
-    std::reverse(output.begin(), output.end());
+    auto output(os.str());
+    reverse(output.begin(), output.end());
 
     return output;
 }
@@ -54,7 +54,7 @@ bool getline(std::istream& is, std::string& line)
                 line += buf;
                 pbuf = buf;
             }
-            *pbuf++ = (char)c;
+            *pbuf++ = static_cast<char>(c);
         }
     }
 

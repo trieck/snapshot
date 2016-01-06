@@ -8,8 +8,8 @@ class EventWriter
 public:
     EventWriter();
     ~EventWriter();
-    void write(std::ostream& os, const Event& event);
-    std::string write(const Event& event);
+    void write(std::ostream& os, const Event& event) const;
+    std::string write(const Event& event) const;
 
 private:
     Json::StreamWriterBuilder builder_;

@@ -3,7 +3,7 @@
 inline size_t _fnvhash64(const void *k, size_t len) {
     size_t i, hash;
 
-    const uint8_t* key = static_cast<const uint8_t*>(k);
+    auto key = static_cast<const uint8_t*>(k);
     for (hash = 0, i = 0; i < len; ++i) {
         hash ^= key[i]; 
         hash *= 1099511628211;

@@ -39,7 +39,7 @@ private:
 
     void newpage();
     uint64_t datumoffset() const;
-    uint64_t datumoffset(uint64_t pageno, uint8_t datum) const;
+    static uint64_t datumoffset(uint64_t pageno, uint8_t datum);
     uint64_t nextdatumoffset() const;
     void newdatum();
 

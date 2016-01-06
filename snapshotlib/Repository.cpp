@@ -82,7 +82,7 @@ uint64_t Repository::datumoffset() const
     return datumoffset(dpageno_, ddatum_);
 }
 
-uint64_t Repository::datumoffset(uint64_t pageno, uint8_t datum) const
+uint64_t Repository::datumoffset(uint64_t pageno, uint8_t datum)
 {
     return (pageno * BlockIO::BLOCK_SIZE) + (datum * sizeof(Datum));
 }
