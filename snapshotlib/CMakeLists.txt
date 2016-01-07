@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.3)
-project(snapshotlib)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.3)
+PROJECT(snapshotlib)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-include_directories(../../flatbuffers/include)
-set(SOURCE_FILES
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+INCLUDE_DIRECTORIES(../../flatbuffers/include)
+SET(SOURCE_FILES
         util.cpp
         util.h
         Timer.cpp
@@ -35,7 +35,19 @@ set(SOURCE_FILES
         radixsort.h
         )
 
-add_library(snapshotlib ${SOURCE_FILES})
+ADD_LIBRARY(snapshotlib ${SOURCE_FILES})
 
-find_package(Boost 1.59.0)
+FIND_PACKAGE(Boost 1.59.0)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+
+ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_SOURCE_DIR}/event_generated.h
+        COMMAND flatc -o ${CMAKE_CURRENT_SOURCE_DIR} --cpp ${CMAKE_HOME_DIRECTORY}/schema/event.fbs
+        DEPENDS ${CMAKE_HOME_DIRECTORY}/schema/event.fbs
+        )
+
+ADD_CUSTOM_TARGET(compile_schema
+        DEPENDS ${PROJECT_SOURCE_DIR}/event_generated.h
+        )
+
+ADD_DEPENDENCIES(snapshotlib compile_schema)
+
