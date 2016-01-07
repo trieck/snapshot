@@ -12,11 +12,11 @@ public:
     void restart();
 private:
     using Clock = std::chrono::high_resolution_clock;
-    using time_point = std::chrono::time_point<std::chrono::steady_clock>;
-    time_point start_;
+    using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+    TimePoint start_;
 };
 
-inline std::ostream& operator << (std::ostream& s, const Timer& timer)
+inline std::ostream& operator<<(std::ostream& s, const Timer& timer)
 {
     return s << timer.str();
 }

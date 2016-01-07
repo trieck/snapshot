@@ -16,11 +16,11 @@ typedef struct Bucket {                 // hash table bucket
     uint32_t flags;                     // bucket flags
     uint64_t datum;                     // offset to datum
     uint32_t digest[SHA1_DIGEST_INTS];  // sha-1 digest
-} *LPBUCKET;
+} * LPBUCKET;
 
 typedef struct BucketPage {             // hash table page
     Bucket buckets[1];                  // hash table
-} *LPBUCKETPAGE;
+} * LPBUCKETPAGE;
 
 // restore default structure alignment
 #pragma pack (pop)
@@ -49,10 +49,10 @@ public:
     uint64_t maxrun();
 private:
     void mktable(const char* filename, uint32_t entries);
-    uint64_t hash(const Event& event) const;
-    uint64_t hash(const std::string& s) const;
     uint64_t hash(digest_type digest) const;
     uint64_t hash(digest_type digest, uint64_t tablesize) const;
+    uint64_t hash(const Event& event) const;
+    uint64_t hash(const std::string& s) const;
     void getDigest(uint64_t bucket, digest_type digest) const;
     void setKey(uint64_t bucket, const std::string& key);
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);

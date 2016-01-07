@@ -80,10 +80,7 @@ bool EventStore::find(const std::string& key)
     if (!getBucket(key, pageno, bucket))
         return false;
 
-    if (IS_DELETED(page_, bucket))
-        return false;
-
-    return true;
+    return IS_DELETED(page_, bucket) == 0;
 }
 
 bool EventStore::find(const std::string& key, Event& event)
@@ -97,7 +94,7 @@ bool EventStore::find(const std::string& key, Event& event)
     return true;
 }
 
-bool EventStore::find(const std::string & key, EventBufferPtr& event)
+bool EventStore::find(const std::string& key, EventBufferPtr& event)
 {
     uint64_t pageno, bucket;
     if (!getBucket(key, pageno, bucket))
@@ -140,6 +137,16 @@ bool EventStore::insert(const Event& event)
     return true;
 }
 
+uint64_t EventStore::hash(digest_type digest) const
+{
+    return hash(digest, tablesize_);
+}
+
+uint64_t EventStore::hash(digest_type digest, uint64_t m) const
+{
+    return fnvhash64<digest_type>(digest) % m;
+}
+
 uint64_t EventStore::hash(const Event& event) const
 {
     return hash(event.getObjectId());
@@ -152,16 +159,6 @@ uint64_t EventStore::hash(const std::string& s) const
     return hash(digest);
 }
 
-uint64_t EventStore::hash(digest_type digest) const
-{
-    return hash(digest, tablesize_);
-}
-
-uint64_t EventStore::hash(digest_type digest, uint64_t m) const
-{
-    return fnvhash64(digest) % m;
-}
-
 bool EventStore::destroy(const Event& event)
 {
     auto key = event.getObjectId();
@@ -170,7 +167,7 @@ bool EventStore::destroy(const Event& event)
     if (!getBucket(key, pageno, bucket))
         return false;
 
-    SET_DELETED(page_, bucket) = 1;
+    SET_DELETED(page_, bucket);
 
     io_.writeblock(pageno, page_);
 
@@ -193,7 +190,7 @@ bool EventStore::update(const Event& event)
 
 void EventStore::getDigest(uint64_t bucket, digest_type digest) const
 {
-    auto bdigest = BUCKET_DIGEST(page_, bucket);
+    auto* bdigest = BUCKET_DIGEST(page_, bucket);
     memcpy(digest, bdigest, sizeof(digest_type));
 }
 
@@ -202,14 +199,6 @@ void EventStore::setKey(uint64_t bucket, const std::string& key)
     uint32_t digest[SHA1_DIGEST_INTS];
     sha1(key, digest);
     memcpy(BUCKET_DIGEST(page_, bucket), digest, sizeof(digest_type));
-}
-
-bool EventStore::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
-{
-    uint32_t digest[SHA1_DIGEST_INTS];
-    sha1(key, digest);
-
-    return findSlot(digest, pageno, bucket);
 }
 
 bool EventStore::findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket)
@@ -224,7 +213,7 @@ bool EventStore::findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket
         return true;
 
     uint32_t bdigest[SHA1_DIGEST_INTS];
-    for (auto i = 0; i < tablesize_; ++i) {
+    for (auto i = 0ULL; i < tablesize_; ++i) {
         if (IS_EMPTY(page_, bucket))
             return true;    // empty slot
 
@@ -236,6 +225,14 @@ bool EventStore::findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket
     }
 
     return false;
+}
+
+bool EventStore::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket)
+{
+    uint32_t digest[SHA1_DIGEST_INTS];
+    sha1(key, digest);
+
+    return findSlot(digest, pageno, bucket);
 }
 
 bool EventStore::isEqualDigest(digest_type d1, digest_type d2) const
@@ -257,14 +254,14 @@ void EventStore::resize()
     uint64_t bucket = 0, pageno = 0;
     io_.readblock(pageno, page_);
 
-    for (;;) {
+    for (; ;) {
         if (IS_FILLED(page_, bucket)) {
             LPBUCKET pbucket = &BUCKET(page_, bucket);
             store.transfer(pbucket);
         }
 
-        if ((++bucket %= BUCKETS_PER_PAGE) == 0) {  // next page
-            if ((++pageno %= nbpages_) == 0)
+        if ((bucket = ((bucket + 1) % BUCKETS_PER_PAGE)) == 0) {  // next page
+            if ((pageno = ((pageno + 1) % nbpages_)) == 0)
                 break;  // wrapped
 
             io_.readblock(pageno, page_);
@@ -303,12 +300,12 @@ bool EventStore::getBucket(const std::string& key, uint64_t& pageno, uint64_t& b
 
     io_.readblock(pageno, page_);
     if (IS_EMPTY(page_, bucket))
-        return false;	// no hit
+        return false;    // no hit
 
     uint32_t bdigest[SHA1_DIGEST_INTS], kdigest[SHA1_DIGEST_INTS];
     sha1(key, kdigest);
 
-    for (auto i = 0; i < tablesize_; ++i) {
+    for (auto i = 0ULL; i < tablesize_; ++i) {
         if (IS_EMPTY(page_, bucket))
             return false;   // no hit
 
@@ -349,15 +346,15 @@ uint64_t EventStore::maxrun()
 
     io_.readblock(pageno, page_);
 
-    for (;;) {
+    for (; ;) {
         if (IS_FILLED(page_, bucket)) {
             getDigest(bucket, digest);
             maxrun = std::max(maxrun, runLength(digest));
             io_.readblock(pageno, page_);  // must re-read block
         }
 
-        if ((++bucket %= BUCKETS_PER_PAGE) == 0) {  // next page
-            if ((++pageno %= nbpages_) == 0)
+        if ((bucket = ((bucket + 1) % BUCKETS_PER_PAGE)) == 0) {  // next page
+            if ((pageno = ((pageno + 1) % nbpages_)) == 0)
                 break;  // wrapped
 
             io_.readblock(pageno, page_);
@@ -395,7 +392,7 @@ uint64_t EventStore::runLength(digest_type digest)
         return 0;
 
     auto run = 1ULL;
-    for (auto i = 0; i < tablesize_; ++i, ++run) {
+    for (auto i = 0ULL; i < tablesize_; ++i, ++run) {
         if (IS_EMPTY(page_, bucket))
             break;
 

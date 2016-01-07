@@ -31,13 +31,13 @@ std::string comma(uint64_t i)
 
 bool getline(std::istream& is, std::string& line)
 {
-    char buf[LINE_BUF_SIZE], *pbuf = buf;
+    char buf[LINE_BUF_SIZE], * pbuf = buf;
     line.clear();
 
     auto streambuf = is.rdbuf();
 
-    int c;
-    for (;;) {
+    std::streambuf::int_type c;
+    for (; ;) {
         c = streambuf->sbumpc();
         if (c == EOF) {
             *pbuf = '\0';

@@ -34,5 +34,5 @@ uint64_t Primes::prime(uint64_t i)
     while (i >>= 1)
         j++;
 
-    return (1i64 << j) - delta[j];
+    return (1ULL << j) - delta[j];
 }

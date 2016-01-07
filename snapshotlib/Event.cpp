@@ -39,7 +39,7 @@ Event::~Event()
 {
 }
 
-Event & Event::operator=(const Event& rhs)
+Event& Event::operator=(const Event& rhs)
 {
     if (this != &rhs) {
         event_ = rhs.event_;
@@ -48,12 +48,12 @@ Event & Event::operator=(const Event& rhs)
     return *this;
 }
 
-Event & Event::operator=(EventBufferPtr& buffer)
+Event& Event::operator=(EventBufferPtr& buffer)
 {
     clear();
 
     auto event = buffer->getEvent();
-    
+
     copyStringField("EVENT_NAME", event->name());
     event_["EVENT_SEQUENCE_NUMBER"] = event->sequence();
     copyStringField("EVENT_SOURCE", event->source());
@@ -86,7 +86,7 @@ const Json::Value& Event::operator[](const char* key) const
     return event_[key];
 }
 
-const Json::Value& Event::operator[](const std::string & key) const
+const Json::Value& Event::operator[](const std::string& key) const
 {
     return event_[key];
 }
@@ -99,7 +99,7 @@ void Event::parseMeta()
     for (Json::ArrayIndex i = 0; i < size; ++i) {
         auto name = meta[i][METADATA_NAME].asString();
         auto& value = meta[i][METADATA_VALUE];
-        meta_.insert(std::pair<std::string, Json::Value>{name, value});
+        meta_.insert(std::make_pair(name, value));
     }
 }
 
@@ -130,7 +130,7 @@ const Json::Value& Event::getMeta(const char* key) const
     return it->second;
 }
 
-const Json::Value & Event::getEvent() const
+const Json::Value& Event::getEvent() const
 {
     return event_;
 }
@@ -167,7 +167,7 @@ void Event::setObjectId(const std::string& objectId)
 
 void Event::setParentId(const std::string& parentId)
 {
-	putMeta(PARENT_OBJECT_ID, parentId);
+    putMeta(PARENT_OBJECT_ID, parentId);
 }
 
 void Event::setRootId(const std::string& rootId)
@@ -175,7 +175,7 @@ void Event::setRootId(const std::string& rootId)
     putMeta(ROOT_WINDOW_OBJECT_ID, rootId);
 }
 
-void Event::putMeta(const std::string&name, const std::string& value)
+void Event::putMeta(const std::string& name, const std::string& value)
 {
     removeMeta(name);
 

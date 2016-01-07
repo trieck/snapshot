@@ -95,7 +95,7 @@ PartitionVec& Partitioner::getPartitions(const std::string& key)
 
 EventVec& Partitioner::lookup(const Event& event)
 {
-    std::string key = getKey(event);
+    auto key = getKey(event);
 
     auto it = map_.find(key);
     if (it == map_.end()) {

@@ -15,7 +15,7 @@ private:
     void merge();
     void insert(const Event& event);
     void snapshot();
-    void snapshot(const PartitionPtr& partition);
+    static void snapshot(const PartitionPtr& partition);
 
     Partitioner partitioner_;
     PartitionVec partitions_;   // merged set

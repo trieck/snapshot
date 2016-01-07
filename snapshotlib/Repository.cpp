@@ -54,15 +54,15 @@ void Repository::writeValue(const uint8_t* bytes, int totalLength, int length, u
         }
 
         auto written = 0, nlength = std::min(length, avail);
-        auto ptr = DATUM_PTR(dpage_, ddatum_);
+        auto* ptr = DATUM_PTR(dpage_, ddatum_);
         while (nlength > 0) {
             *ptr++ = *bytes++;
             nlength--;
             written++;
         }
 
-        DATUM_TOTAL_LENGTH(dpage_, ddatum_) = totalLength;
-        DATUM_LENGTH(dpage_, ddatum_) = written;
+        DATUM_TOTAL_LENGTH(dpage_, ddatum_) = (uint32_t) totalLength;
+        DATUM_LENGTH(dpage_, ddatum_) = (uint32_t) written;
         length -= written;
     }
 
@@ -92,7 +92,7 @@ uint64_t Repository::nextdatumoffset() const
     auto pageno = dpageno_;
     auto ddatum = ddatum_;
 
-    if ((++ddatum %= DATUM_PER_PAGE) == 0) {
+    if ((ddatum = (uint8_t) ((ddatum + 1) % DATUM_PER_PAGE)) == 0) {
         pageno++;
     }
 
@@ -101,7 +101,7 @@ uint64_t Repository::nextdatumoffset() const
 
 void Repository::newdatum()
 {
-    if ((++ddatum_ %= DATUM_PER_PAGE) == 0) {
+    if ((ddatum_ = (uint8_t) ((ddatum_ + 1) % DATUM_PER_PAGE)) == 0) {
         io_.writeblock(dpageno_, dpage_);
         newpage();
     }
@@ -138,7 +138,7 @@ void Repository::updateValue(const uint8_t* bytes, int totalLength, uint64_t off
         }
 
         auto written = 0, nlength = std::min(length, avail);
-        auto ptr = DATUM_PTR(dpage_, datum);
+        auto* ptr = DATUM_PTR(dpage_, datum);
         while (nlength > 0) {
             *ptr++ = *bytes++;
             nlength--;
@@ -151,8 +151,8 @@ void Repository::updateValue(const uint8_t* bytes, int totalLength, uint64_t off
             nlength--;
         }
 
-        DATUM_TOTAL_LENGTH(dpage_, datum) = totalLength;
-        DATUM_LENGTH(dpage_, datum) = written;
+        DATUM_TOTAL_LENGTH(dpage_, datum) = (uint32_t) totalLength;
+        DATUM_LENGTH(dpage_, datum) = (uint32_t) written;
         if ((length -= written) == 0) {
             DATUM_NEXT(dpage_, datum) = 0;
         }
@@ -171,8 +171,8 @@ void Repository::readVal(uint64_t offset, EventBufferPtr& event)
 
     ByteBuffer buffer(DATUM_TOTAL_LENGTH(dpage_, datum));
 
-    for (;;) {
-        auto ptr = DATUM_PTR(dpage_, datum);
+    for (; ;) {
+        auto* ptr = DATUM_PTR(dpage_, datum);
         auto length = static_cast<int>(DATUM_LENGTH(dpage_, datum));
 
         while (length > 0) {

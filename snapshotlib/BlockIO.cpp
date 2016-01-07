@@ -57,7 +57,7 @@ void BlockIO::seekblock(uint64_t blockno)
 
 uint64_t BlockIO::tell()
 {
-    return stream_.tellp();
+    return static_cast<uint64_t>(stream_.tellp());
 }
 
 uint64_t BlockIO::getFileSize()
@@ -66,7 +66,7 @@ uint64_t BlockIO::getFileSize()
     stream_.seekp(0, std::ios::end);
     auto end = stream_.tellp();
     stream_.seekp(save, std::ios::beg);
-    return end;
+    return static_cast<uint64_t>(end);
 }
 
 void BlockIO::flush()
@@ -86,5 +86,5 @@ void* BlockIO::mkblock()
 
 void BlockIO::freeblock(void* block)
 {
-    delete[] block;
+    delete[] static_cast<char*>(block);
 }
