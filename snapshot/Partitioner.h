@@ -16,7 +16,7 @@ public:
     PartitionVec merge();
 
 private:
-    constexpr auto MAX_EVENTS = 1000;
+    constexpr static auto MAX_EVENTS = 1000;
 
     EventVec& lookup(const Event& event);
     static std::string getKey(const Event& event);
