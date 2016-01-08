@@ -61,8 +61,8 @@ void Repository::writeValue(const uint8_t* bytes, int totalLength, int length, u
             written++;
         }
 
-        DATUM_TOTAL_LENGTH(dpage_, ddatum_) = (uint32_t) totalLength;
-        DATUM_LENGTH(dpage_, ddatum_) = (uint32_t) written;
+        DATUM_TOTAL_LENGTH(dpage_, ddatum_) = static_cast<uint32_t>(totalLength);
+        DATUM_LENGTH(dpage_, ddatum_) = static_cast<uint32_t>(written);
         length -= written;
     }
 
@@ -92,7 +92,7 @@ uint64_t Repository::nextdatumoffset() const
     auto pageno = dpageno_;
     auto ddatum = ddatum_;
 
-    if ((ddatum = (uint8_t) ((ddatum + 1) % DATUM_PER_PAGE)) == 0) {
+    if ((ddatum = static_cast<uint8_t>((ddatum + 1) % DATUM_PER_PAGE)) == 0) {
         pageno++;
     }
 
@@ -101,7 +101,7 @@ uint64_t Repository::nextdatumoffset() const
 
 void Repository::newdatum()
 {
-    if ((ddatum_ = (uint8_t) ((ddatum_ + 1) % DATUM_PER_PAGE)) == 0) {
+    if ((ddatum_ = static_cast<uint8_t>((ddatum_ + 1) % DATUM_PER_PAGE)) == 0) {
         io_.writeblock(dpageno_, dpage_);
         newpage();
     }
@@ -151,8 +151,8 @@ void Repository::updateValue(const uint8_t* bytes, int totalLength, uint64_t off
             nlength--;
         }
 
-        DATUM_TOTAL_LENGTH(dpage_, datum) = (uint32_t) totalLength;
-        DATUM_LENGTH(dpage_, datum) = (uint32_t) written;
+        DATUM_TOTAL_LENGTH(dpage_, datum) = static_cast<uint32_t>(totalLength);
+        DATUM_LENGTH(dpage_, datum) = static_cast<uint32_t>(written);
         if ((length -= written) == 0) {
             DATUM_NEXT(dpage_, datum) = 0;
         }

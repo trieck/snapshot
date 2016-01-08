@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "SnapshotTree.h"
 #include "radixsort.h"
-#include "Timer.h"
 
 namespace {
     const std::regex CREATED("Created");

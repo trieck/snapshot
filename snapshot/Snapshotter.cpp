@@ -25,7 +25,7 @@ void Snapshotter::partition(const char* file)
 
     std::ifstream stream(file);
     if (!stream.is_open()) {
-        boost::format message = boost::format("unable to open file \"%s\".") % file;
+        auto message = boost::format("unable to open file \"%s\".") % file;
         throw std::runtime_error(message.str().c_str());
     }
 
