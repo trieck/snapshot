@@ -3,14 +3,15 @@
 #include "Merger.h"
 #include "radixsort.h"
 
-namespace { const auto MAX_EVENTS = 1000; }
-
-struct EventPred : public std::unary_function<const Event&, bool> {
+struct EventPred : public std::unary_function<const Event&, bool>
+{
     typedef uint64_t KEY_TYPE;
     KEY_TYPE bit_;
 
-    EventPred(KEY_TYPE bit) : bit_(bit) {}
-    inline bool operator() (const Event& event) const {
+    EventPred(KEY_TYPE bit) : bit_(bit) { }
+
+    inline bool operator()(const Event& event) const
+    {
         auto num = event.getSequenceNumber();
         return !(num & (1ULL << bit_));
     }
@@ -54,8 +55,6 @@ PartitionVec Partitioner::merge()
     PartitionVec output;
 
     flush();
-
-    PartitionPtr partition;
 
     for (auto& pair : partitions_) {
         Merger merger(pair.first);

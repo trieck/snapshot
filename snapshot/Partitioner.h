@@ -16,15 +16,15 @@ public:
     PartitionVec merge();
 
 private:
+    constexpr auto MAX_EVENTS = 1000;
+
     EventVec& lookup(const Event& event);
     static std::string getKey(const Event& event);
 
     void flush(const std::string& key, std::vector<Event>& value);
     void sort(EventVec& vec);
-
     PartitionVec& getPartitions(const std::string& key);
 
-    EventWriter writer_;
     uint32_t count_;
     std::unordered_map<std::string, EventVec> map_;
     std::unordered_map<std::string, PartitionVec> partitions_;
