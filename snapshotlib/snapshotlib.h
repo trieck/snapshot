@@ -32,6 +32,7 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::flush;
 
 using stringvec = std::vector<std::string>;
 using OpenMode = std::ios::openmode;

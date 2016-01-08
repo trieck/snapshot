@@ -5,7 +5,7 @@
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cerr << "usage: snapshot filename" << endl;
+        cerr << "usage: snapshot filename" << flush << endl;
         exit(1);
     }
 
@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    cout << "    elapsed time " << timer << endl;
+    cout << "    elapsed time " << timer << flush << endl;
 
     return 0;
 }

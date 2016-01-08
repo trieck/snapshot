@@ -21,7 +21,7 @@ void Snapshotter::snapshot(const char* file)
 void Snapshotter::partition(const char* file)
 {
     Timer timer;
-    cout << "partitioning...";
+    cout << "partitioning..." << flush;
 
     std::ifstream stream(file);
     if (!stream.is_open()) {
@@ -38,15 +38,15 @@ void Snapshotter::partition(const char* file)
         insert(event);
     }
 
-    cout << "complete (" << timer << ")" << endl;
+    cout << "complete (" << timer << ")" << flush << endl;
 }
 
 void Snapshotter::merge()
 {
     Timer timer;
-    cout << "merging...";
+    cout << "merging..." << flush;
     partitions_ = partitioner_.merge();
-    cout << "complete (" << timer << ")" << endl;
+    cout << "complete (" << timer << ")" << flush << endl;
 }
 
 void Snapshotter::insert(const Event& event)
@@ -60,11 +60,11 @@ void Snapshotter::insert(const Event& event)
 void Snapshotter::snapshot()
 {
     Timer timer;
-    cout << "snapshotting...";
+    cout << "snapshotting..." << flush;
     for (const auto& partition : partitions_) {
         snapshot(partition);
     }
-    cout << "complete (" << timer << ")" << endl;
+    cout << "complete (" << timer << ")" << flush << endl;
 }
 
 void Snapshotter::snapshot(const PartitionPtr& partition)

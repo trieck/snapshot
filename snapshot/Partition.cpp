@@ -15,7 +15,7 @@ Partition::Partition(const std::string& key, const std::string& name)
 Partition::~Partition()
 {
     close();
-    _unlink(name_.c_str());
+    unlink(name_.c_str());
 }
 
 void Partition::open(OpenMode mode)

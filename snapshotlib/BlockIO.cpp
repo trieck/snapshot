@@ -31,7 +31,7 @@ void BlockIO::close()
 void BlockIO::unlink()
 {
     close();
-    _unlink(filename_.c_str());
+    ::unlink(filename_.c_str());
 }
 
 void BlockIO::readblock(uint64_t blockno, void* pv)

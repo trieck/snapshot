@@ -7,15 +7,19 @@ namespace {
     const std::regex CREATED("Created");
     const std::regex DESTROYED("Destroyed");
     const std::regex REPARENTED("Reparented");
-    const std::regex SNAP_EVENT("Click|DoubleClick|GotFocus|LostFocus|SelectedIndexChanged|UserModified|CellValueChanged");
+    const std::regex SNAP_EVENT(
+            "Click|DoubleClick|GotFocus|LostFocus|SelectedIndexChanged|UserModified|CellValueChanged");
 }
 
-struct InitialSeqPred : public std::unary_function<const EventBufferPtr&, bool> {
+struct InitialSeqPred : public std::unary_function<const EventBufferPtr&, bool>
+{
     typedef uint64_t KEY_TYPE;
     KEY_TYPE bit_;
 
-    InitialSeqPred(KEY_TYPE bit) : bit_(bit) {}
-    inline bool operator() (const EventBufferPtr& buffer) const {
+    InitialSeqPred(KEY_TYPE bit) : bit_(bit) { }
+
+    inline bool operator()(const EventBufferPtr& buffer) const
+    {
         auto event = buffer->getEvent();
         auto num = event->initial_sequence();
         return !(num & (1ULL << bit_));
@@ -54,12 +58,12 @@ void SnapshotTree::snapshot(Partition* partition)
 
 void SnapshotTree::stats()
 {
-    cout << endl << "    Index filename: " << store_.filename() << endl;
-    cout << "    Index file size: " << comma(store_.filesize()) << " bytes" << endl;
-    cout << "    Hash table size: " << comma(store_.tablesize()) << " buckets" << endl;
-    cout << "    Hash table fill count: " << comma(store_.fillcount()) << " buckets" << endl;
-    cout << "    Hash table load factor: " << boost::format("%02.2f%%") % store_.loadfactor() << endl;
-    cout << "    Longest run: " << comma(store_.maxrun()) << " buckets" << endl;
+    cout << endl << "    Index filename: " << store_.filename() << flush << endl;
+    cout << "    Index file size: " << comma(store_.filesize()) << " bytes" << flush << endl;
+    cout << "    Hash table size: " << comma(store_.tablesize()) << " buckets" << flush << endl;
+    cout << "    Hash table fill count: " << comma(store_.fillcount()) << " buckets" << flush << endl;
+    cout << "    Hash table load factor: " << boost::format("%02.2f%%") % store_.loadfactor() << flush << endl;
+    cout << "    Longest run: " << comma(store_.maxrun()) << " buckets" << flush << endl;
 }
 
 void SnapshotTree::process(const Event& event)
@@ -168,7 +172,7 @@ void SnapshotTree::reparent(const Event& from, const Event& to)
     }
 }
 
-void SnapshotTree::snapshot(const Event & event)
+void SnapshotTree::snapshot(const Event& event)
 {
     update(event);
     SnapshotParser parser;

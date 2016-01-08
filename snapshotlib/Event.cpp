@@ -55,10 +55,10 @@ Event& Event::operator=(EventBufferPtr& buffer)
     auto event = buffer->getEvent();
 
     copyStringField("EVENT_NAME", event->name());
-    event_["EVENT_SEQUENCE_NUMBER"] = event->sequence();
+    event_["EVENT_SEQUENCE_NUMBER"] = Json::Value::UInt64(event->sequence());
     copyStringField("EVENT_SOURCE", event->source());
     copyStringField("OPERATION_ID", event->operation_id());
-    event_["PROCESS_ID"] = event->process_id();
+    event_["PROCESS_ID"] = Json::Value::UInt64(event->process_id());
     copyStringField("SESSION_ID", event->session_id());
     copyStringField("TIME_STAMP", event->time_stamp());
     copyStringField("TIME_ZONE_NAME", event->time_zone_name());
@@ -66,7 +66,7 @@ Event& Event::operator=(EventBufferPtr& buffer)
     copyChildren(event->tree_children());
 
     if (event->initial_sequence()) {
-        event_["INITIAL_SEQUENCE_NUMBER"] = event->initial_sequence();
+        event_["INITIAL_SEQUENCE_NUMBER"] = Json::Value::UInt64(event->initial_sequence());
     }
 
     auto metadata = event->metadata();
