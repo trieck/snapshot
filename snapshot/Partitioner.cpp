@@ -78,7 +78,7 @@ void Partitioner::flush(const std::string& key, std::vector<Event>& vec)
     partitions.push_back(std::move(partition));
 }
 
-void Partitioner::sort(EventVec& vec)
+void Partitioner::sort(EventVec& vec) const
 {
     radixsort<EventPred>(vec.begin(), vec.end());
 }

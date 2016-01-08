@@ -20,7 +20,7 @@ private:
     static std::string getKey(const Event& event);
 
     void flush(const std::string& key, std::vector<Event>& value);
-    void sort(EventVec& vec);
+    void sort(EventVec& vec) const;
 
     PartitionVec& getPartitions(const std::string& key);
 
