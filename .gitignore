@@ -1,3 +1,4 @@
+*.a
 *.cmake
 *.exe
 *.ilk
@@ -8,12 +9,13 @@
 *.sdf
 *.suo
 *.user
+*CMakeFiles/
 .idea
 /*.txt
 /snapshotlib/event_generated.h
-CMakeFiles/
 Debug/
-ipch/
 Makefile
 Release/
+bin/
+ipch/
 x64/
