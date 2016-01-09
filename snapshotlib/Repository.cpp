@@ -33,6 +33,12 @@ void Repository::close()
     io_.close();
 }
 
+void Repository::_unlink()
+{
+    close();
+    io_._unlink();
+}
+
 void Repository::writeEvent(const Event& event, uint64_t& offset)
 {
     EventBufferPtr buffer = EventBuffer::makeBuffer(event);

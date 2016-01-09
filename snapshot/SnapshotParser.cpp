@@ -11,6 +11,20 @@ SnapshotParser::~SnapshotParser()
 {
 }
 
+void SnapshotParser::writePhrases(Event& event) const
+{
+    Json::Value phrases = Json::arrayValue;
+    
+    for (const auto& phrase : phrases_) {
+        Json::Value object = Json::objectValue;
+        object["text"] = phrase.text_;
+        object["status"] = Phrase::toString(phrase.status_);
+        phrases.append(object);
+    }
+
+    event.setPhrases(phrases);
+}
+
 void SnapshotParser::addPhrase(const std::string& phrase, Phrase::PhraseStatus status)
 {
     auto text = phrase;

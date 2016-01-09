@@ -23,3 +23,15 @@ Phrase& Phrase::operator=(const Phrase& rhs)
 Phrase::~Phrase()
 {
 }
+
+std::string Phrase::toString(PhraseStatus status)
+{
+    if (status == PhraseStatus::Regular)
+        return "regular";
+    if (status == PhraseStatus::Hidden)
+        return "hidden";
+    if (status == PhraseStatus::Title)
+        return "title";
+
+    return "";
+}

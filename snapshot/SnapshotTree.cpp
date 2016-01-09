@@ -1,13 +1,14 @@
 #include "stdafx.h"
 #include "SnapshotTree.h"
 #include "radixsort.h"
+#include <EventWriter.h>
 
 namespace {
     const std::regex CREATED("Created");
     const std::regex DESTROYED("Destroyed");
     const std::regex REPARENTED("Reparented");
     const std::regex SNAP_EVENT(
-            "Click|DoubleClick|GotFocus|LostFocus|SelectedIndexChanged|UserModified|CellValueChanged");
+        "Click|DoubleClick|GotFocus|LostFocus|SelectedIndexChanged|UserModified|CellValueChanged");
 }
 
 struct InitialSeqPred : public std::unary_function<const EventBufferPtr&, bool>
@@ -15,7 +16,7 @@ struct InitialSeqPred : public std::unary_function<const EventBufferPtr&, bool>
     typedef uint64_t KEY_TYPE;
     KEY_TYPE bit_;
 
-    InitialSeqPred(KEY_TYPE bit) : bit_(bit) { }
+    explicit InitialSeqPred(KEY_TYPE bit) : bit_(bit) { }
 
     inline bool operator()(const EventBufferPtr& buffer) const
     {
@@ -33,23 +34,28 @@ SnapshotTree::SnapshotTree()
 SnapshotTree::~SnapshotTree()
 {
     store_.close();
+    store_._unlink();
 }
 
-void SnapshotTree::snapshot(Partition* partition)
+void SnapshotTree::snapshot(Partition* partition, std::ostream& os)
 {
     partition->open(std::ios::in);
     std::istream& stream = partition->stream();
 
+    EventWriter writer;
     Json::Reader reader;
-    Json::Value event;
+    Json::Value value;
+    Event event;
 
     uint64_t key;
     std::string line;
     while (stream >> key) {
         stream.rdbuf()->sbumpc();   // tab
         getline(stream, line);
-        reader.parse(line, event, false);
+        reader.parse(line, value, false);
+        event = value;
         process(event);
+        writer.write(os, event) << endl;
     }
 
     partition->close();
@@ -65,7 +71,7 @@ void SnapshotTree::stats()
     cout << "    Longest run: " << comma(store_.maxrun()) << " buckets" << flush << endl;
 }
 
-void SnapshotTree::process(const Event& event)
+void SnapshotTree::process(Event& event)
 {
     auto name = event["EVENT_NAME"].asString();
     if (std::regex_match(name, CREATED)) {
@@ -171,11 +177,13 @@ void SnapshotTree::reparent(const Event& from, const Event& to)
     }
 }
 
-void SnapshotTree::snapshot(const Event& event)
+void SnapshotTree::snapshot(Event& event)
 {
     update(event);
+
     SnapshotParser parser;
     parse(parser, event);
+    parser.writePhrases(event);
 }
 
 void SnapshotTree::parse(SnapshotParser& parser, const Event& event)

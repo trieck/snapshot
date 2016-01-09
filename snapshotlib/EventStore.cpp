@@ -61,6 +61,7 @@ void EventStore::close()
 void EventStore::unlink()
 {
     close();
+    repo_.unlink();
     io_.unlink();
 }
 

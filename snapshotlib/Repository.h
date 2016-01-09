@@ -28,6 +28,7 @@ public:
 
     void open(const char* filename);
     void close();
+    void unlink();
 
     void writeEvent(const Event& event, uint64_t& offset);
     void updateEvent(const Event& event, uint64_t offset);

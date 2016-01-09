@@ -54,15 +54,15 @@ Event& Event::operator=(EventBufferPtr& buffer)
 
     auto event = buffer->getEvent();
 
-    copyStringField("EVENT_NAME", event->name());
+    copyString("EVENT_NAME", event->name());
     event_["EVENT_SEQUENCE_NUMBER"] = Json::Value::UInt64(event->sequence());
-    copyStringField("EVENT_SOURCE", event->source());
-    copyStringField("OPERATION_ID", event->operation_id());
+    copyString("EVENT_SOURCE", event->source());
+    copyString("OPERATION_ID", event->operation_id());
     event_["PROCESS_ID"] = Json::Value::UInt64(event->process_id());
-    copyStringField("SESSION_ID", event->session_id());
-    copyStringField("TIME_STAMP", event->time_stamp());
-    copyStringField("TIME_ZONE_NAME", event->time_zone_name());
-    copyStringField("USER_ID", event->user_id());
+    copyString("SESSION_ID", event->session_id());
+    copyString("TIME_STAMP", event->time_stamp());
+    copyString("TIME_ZONE_NAME", event->time_zone_name());
+    copyString("USER_ID", event->user_id());
     copyChildren(event->tree_children());
 
     if (event->initial_sequence()) {
@@ -103,7 +103,7 @@ void Event::parseMeta()
     }
 }
 
-void Event::copyStringField(const char* fieldName, const flatbuffers::String* source)
+void Event::copyString(const char* fieldName, const flatbuffers::String* source)
 {
     if (source != nullptr) {
         event_[fieldName] = source->c_str();
@@ -277,6 +277,11 @@ void Event::clear()
 {
     event_.clear();
     meta_.clear();
+}
+
+void Event::setPhrases(const Json::Value& phrases)
+{
+    event_["phrases"] = phrases;
 }
 
 void Event::setInitialSequenceNumber()

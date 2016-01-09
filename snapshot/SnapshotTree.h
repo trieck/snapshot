@@ -11,10 +11,10 @@ public:
     SnapshotTree();
     ~SnapshotTree();
 
-    void snapshot(Partition* partition);
+    void snapshot(Partition* partition, std::ostream& os);
     void stats();
 private:
-    void process(const Event& event);
+    void process(Event& event);
     void insert(const Event& event);
     void insert(const Event& event, const std::string& parentId);
     void addChild(const std::string & parentId, const Event& event);
@@ -23,7 +23,7 @@ private:
     void update(const Event& event);
     void reparent(const Event& event);
     void reparent(const Event& from, const Event& to);
-    void snapshot(const Event& event);
+    void snapshot(Event& event);
     void parse(SnapshotParser& parser, const Event& event);
     void parseNode(SnapshotParser& parser, const EventBufferPtr& node);
     std::string getParentId(const Event& event) const;

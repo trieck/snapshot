@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Event.h"
-#include "EventWriter.h"
 #include "Partition.h"
 
 class Partitioner

@@ -14,6 +14,8 @@ public:
     Phrase& operator =(const Phrase& rhs);
     ~Phrase();
 
+    static std::string toString(PhraseStatus status);
+
     PhraseStatus status_;
     std::string text_;
 };

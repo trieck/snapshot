@@ -10,7 +10,7 @@ class Event
 public:
     Event();
     Event(EventBufferPtr& buffer);
-    Event(const Json::Value & event);
+    Event(const Json::Value& event);
     Event(const Event& rhs);
     ~Event();
 
@@ -34,20 +34,20 @@ public:
     void putMeta(const std::string& name, const std::string& value);
     void removeMeta(const std::string& name);
     void addChild(const std::string& objectId);
-    bool hasChild(const std::string& objectId) const;    
+    bool hasChild(const std::string& objectId) const;
     bool hasChildren() const;
     bool removeChild(const std::string& objectId);
-    Event merge(const Event& event) const;    
+    Event merge(const Event& event) const;
     const Json::Value& children() const;
     void clear();
-
+    void setPhrases(const Json::Value& phrases);
 private:
     using FBStringVec = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;
 
     void setInitialSequenceNumber();
     void copyInitialSequenceNumber(const Event& event);
     void parseMeta();
-    void copyStringField(const char* fieldName, const flatbuffers::String* source);
+    void copyString(const char* fieldName, const flatbuffers::String* source);
     void copyChildren(const FBStringVec* children);
     Json::Value event_;
     std::unordered_map<std::string, Json::Value> meta_;

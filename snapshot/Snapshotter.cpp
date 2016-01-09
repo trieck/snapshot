@@ -11,21 +11,21 @@ Snapshotter::~Snapshotter()
 {
 }
 
-void Snapshotter::snapshot(const char* file)
+void Snapshotter::snapshot(const char* infile, const char* outfile)
 {
-    partition(file);
+    partition(infile);
     merge();
-    snapshot();
+    snapshot(outfile);
 }
 
-void Snapshotter::partition(const char* file)
+void Snapshotter::partition(const char* infile)
 {
     Timer timer;
-    cout << "partitioning..." << flush;
+    cout << "partitioning \"" << infile << "\"..." << flush;
 
-    std::ifstream stream(file);
+    std::ifstream stream(infile);
     if (!stream.is_open()) {
-        auto message = boost::format("unable to open file \"%s\".") % file;
+        auto message = boost::format("unable to open file \"%s\".") % infile;
         throw std::runtime_error(message.str().c_str());
     }
 
@@ -57,18 +57,23 @@ void Snapshotter::insert(const Event& event)
     }
 }
 
-void Snapshotter::snapshot()
+void Snapshotter::snapshot(const char* outfile)
 {
     Timer timer;
-    cout << "snapshotting..." << flush;
+    cout << "snapshotting to \"" << outfile << "\"..." << flush;
+
+    std::ofstream os;
+    os.open(outfile, std::ios::out | std::ios::trunc);
+
     for (const auto& partition : partitions_) {
-        snapshot(partition);
+        snapshot(partition, os);
     }
+
     cout << "complete (" << timer << ")" << flush << endl;
 }
 
-void Snapshotter::snapshot(const PartitionPtr& partition)
+void Snapshotter::snapshot(const PartitionPtr& partition, std::ostream& os)
 {
     SnapshotTree tree;
-    tree.snapshot(partition.get());
+    tree.snapshot(partition.get(), os);
 }

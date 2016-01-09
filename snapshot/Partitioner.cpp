@@ -8,7 +8,7 @@ struct EventPred : public std::unary_function<const Event&, bool>
     typedef uint64_t KEY_TYPE;
     KEY_TYPE bit_;
 
-    EventPred(KEY_TYPE bit) : bit_(bit) { }
+    explicit EventPred(KEY_TYPE bit) : bit_(bit) { }
 
     inline bool operator()(const Event& event) const
     {

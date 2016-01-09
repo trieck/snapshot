@@ -9,13 +9,13 @@ public:
     Snapshotter();
     ~Snapshotter();
 
-    void snapshot(const char* file);
+    void snapshot(const char* infile, const char* outfile);
 private:
-    void partition(const char* file);
+    void partition(const char* infile);
     void merge();
     void insert(const Event& event);
-    void snapshot();
-    static void snapshot(const PartitionPtr& partition);
+    void snapshot(const char* outfile);
+    static void snapshot(const PartitionPtr& partition, std::ostream& os);
 
     Partitioner partitioner_;
     PartitionVec partitions_;   // merged set
