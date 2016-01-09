@@ -33,10 +33,10 @@ void Repository::close()
     io_.close();
 }
 
-void Repository::_unlink()
+void Repository::unlink()
 {
     close();
-    io_._unlink();
+    io_.unlink();
 }
 
 void Repository::writeEvent(const Event& event, uint64_t& offset)

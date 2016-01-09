@@ -34,7 +34,7 @@ SnapshotTree::SnapshotTree()
 SnapshotTree::~SnapshotTree()
 {
     store_.close();
-    store_._unlink();
+    store_.unlink();
 }
 
 void SnapshotTree::snapshot(Partition* partition, std::ostream& os)
