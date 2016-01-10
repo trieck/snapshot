@@ -183,7 +183,7 @@ bool EventStore::update(const Event& event)
     if (!getBucket(key, pageno, bucket))
         return false;
 
-    uint64_t offset = BUCKET_DATUM(page_, bucket);
+    auto offset = BUCKET_DATUM(page_, bucket);
     repo_.updateEvent(event, offset);
 
     return true;
@@ -257,7 +257,7 @@ void EventStore::resize()
 
     for (; ;) {
         if (IS_FILLED(page_, bucket)) {
-            LPBUCKET pbucket = &BUCKET(page_, bucket);
+            auto pbucket = &BUCKET(page_, bucket);
             store.transfer(pbucket);
         }
 
