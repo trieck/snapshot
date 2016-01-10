@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Phrase.h"
 
-Phrase::Phrase(const std::string& text, PhraseStatus status) : text_(text), status_(status)
+Phrase::Phrase(const std::string& text, PhraseStatus status) : status_(status), text_(text)
 {
 }
 

@@ -26,7 +26,7 @@ private:
     void snapshot(Event& event);
     void parse(SnapshotParser& parser, const Event& event);
     void parseNode(SnapshotParser& parser, const EventBufferPtr& node);
-    std::string getParentId(const Event& event) const;
+    static std::string getParentId(const Event& event);
     EventBufferVec sortedChildren(const EventBufferPtr& buffer);
     EventStore store_;
 };

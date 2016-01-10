@@ -17,12 +17,12 @@ public:
 
     PartitionPtr merge(const PartitionVec& vec);
 private:
-    size_t countpasses(size_t argc);
+    size_t countpasses(size_t argc) const;
     PartitionPtr mergeonce(size_t argc, PartitionVec::const_iterator it);
     PartitionPtr mergemany(size_t argc, PartitionVec::const_iterator it);
-    bool read(mergerec** recs) const;
-    mergerec** least(mergerec** recs);
-    bool write(std::ostream& out, mergerec** recs);
+    static bool read(mergerec** recs);
+    mergerec** least(mergerec** recs) const;
+    static bool write(std::ostream& out, mergerec** recs);
 
     std::string key_;   // partition key
     size_t pass_;       // count down of pass number

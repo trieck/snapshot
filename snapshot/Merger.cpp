@@ -20,7 +20,7 @@ PartitionPtr Merger::merge(const PartitionVec& vec)
     return mergemany(vec.size(), vec.begin());
 }
 
-size_t Merger::countpasses(size_t argc)
+size_t Merger::countpasses(size_t argc) const
 {
     uint32_t i = 0;
 
@@ -44,10 +44,10 @@ PartitionPtr Merger::mergeonce(size_t argc, PartitionVec::const_iterator it)
 
     PartitionVec::const_iterator save = it;
 
-    mergerec** recs = new mergerec*[argc + 1];
+    auto recs = new mergerec*[argc + 1];
 
     uint32_t i;
-    for (i = 0; i < argc; i++, it++) {
+    for (i = 0; i < argc; i++, ++it) {
         recs[i] = new mergerec;
         recs[i]->stream = it->get();
         recs[i]->stream->open(std::ios::in);
@@ -62,7 +62,7 @@ PartitionPtr Merger::mergeonce(size_t argc, PartitionVec::const_iterator it)
         write(output->stream(), list);
     }
 
-    for (i = 0, it = save; i < argc; i++, it++) {
+    for (i = 0, it = save; i < argc; i++, ++it) {
         recs[i]->stream->close();
         delete recs[i];
     }
@@ -74,7 +74,7 @@ PartitionPtr Merger::mergeonce(size_t argc, PartitionVec::const_iterator it)
     return output;
 }
 
-bool Merger::read(mergerec** recs) const
+bool Merger::read(mergerec** recs)
 {
     for (uint32_t i = 0; recs[i]; i++) {
         if (recs[i]->key == UINT64_MAX)
@@ -86,7 +86,7 @@ bool Merger::read(mergerec** recs) const
     return true;
 }
 
-mergerec** Merger::least(mergerec** recs)
+mergerec** Merger::least(mergerec** recs) const
 {
     auto j = 0, k = 0;
 

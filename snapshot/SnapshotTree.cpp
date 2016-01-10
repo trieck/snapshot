@@ -203,7 +203,7 @@ void SnapshotTree::parseNode(SnapshotParser& parser, const EventBufferPtr& node)
     }
 }
 
-std::string SnapshotTree::getParentId(const Event& event) const
+std::string SnapshotTree::getParentId(const Event& event)
 {
     auto parentId = event.getParentId();
     if (parentId.length() == 0)

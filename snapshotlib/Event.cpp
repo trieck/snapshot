@@ -208,7 +208,7 @@ void Event::addChild(const std::string& objectId)
 {
     auto& children = event_[TREE_CHILDREN];
     if (children.isNull()) {
-        event_[TREE_CHILDREN] = Json::arrayValue;
+        children = event_[TREE_CHILDREN] = Json::arrayValue;
     }
 
     if (!hasChild(objectId)) {
@@ -222,7 +222,7 @@ bool Event::hasChild(const std::string& objectId) const
     if (!children.isArray())
         return false;
 
-    for (auto it = children.begin(); it != children.end(); it++) {
+    for (auto it = children.begin(); it != children.end(); ++it) {
         if (*it == objectId)
             return true;
     }
@@ -259,7 +259,7 @@ Event Event::merge(const Event& event) const
     Event m(*this);
 
     auto& children = event[TREE_CHILDREN];
-    for (Json::ValueConstIterator it = children.begin(); it != children.end(); it++) {
+    for (Json::ValueConstIterator it = children.begin(); it != children.end(); ++it) {
         m.addChild((*it).asString());
     }
 

@@ -41,7 +41,7 @@ void Repository::unlink()
 
 void Repository::writeEvent(const Event& event, uint64_t& offset)
 {
-    EventBufferPtr buffer = EventBuffer::makeBuffer(event);
+    auto buffer = EventBuffer::makeBuffer(event);
     writeValue(*buffer, buffer->size(), buffer->size(), offset);
 }
 
@@ -115,14 +115,14 @@ void Repository::newdatum()
 
 void Repository::updateEvent(const Event& event, uint64_t offset)
 {
-    EventBufferPtr buffer = EventBuffer::makeBuffer(event);
+    auto buffer = EventBuffer::makeBuffer(event);
     updateValue(*buffer, buffer->size(), offset);
 }
 
 void Repository::updateValue(const uint8_t* bytes, int totalLength, uint64_t offset)
 {
-    uint64_t pageno = offset / BlockIO::BLOCK_SIZE;
-    uint64_t datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
+    auto pageno = offset / BlockIO::BLOCK_SIZE;
+    auto datum = (offset - pageno * BlockIO::BLOCK_SIZE) / sizeof(Datum);
 
     io_.readblock(pageno, dpage_);
 

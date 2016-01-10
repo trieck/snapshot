@@ -1,7 +1,7 @@
 #include "snapshotlib.h"
 #include "RandomPerm.h"
 
-RandomPerm::RandomPerm() : n_(0), table_(nullptr)
+RandomPerm::RandomPerm() : table_(nullptr), n_(0)
 {
 }
 
