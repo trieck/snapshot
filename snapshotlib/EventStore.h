@@ -54,14 +54,14 @@ private:
     uint64_t hash(const Event& event) const;
     uint64_t hash(const std::string& s) const;
     void getDigest(uint64_t bucket, digest_type digest) const;
-    void setKey(uint64_t bucket, const std::string& key);
+    void setKey(uint64_t bucket, const std::string& key) const;
     bool findSlot(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     bool findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket);
     bool getBucket(const std::string& key, uint64_t& pageno, uint64_t& bucket);
     uint64_t perm(uint64_t i) const;
     void nextbucket(uint64_t i, uint64_t& bucket, uint64_t& page);
     uint64_t runLength(digest_type digest);
-    bool isEqualDigest(digest_type d1, digest_type d2) const;
+    static bool isEqualDigest(digest_type d1, digest_type d2);
     bool isfull() const;
     void resize();
     bool transfer(LPBUCKET bucket);

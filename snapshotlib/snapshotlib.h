@@ -38,7 +38,3 @@ using stringvec = std::vector<std::string>;
 using OpenMode = std::ios::openmode;
 
 #include "util.h"
-
-#ifdef _MSC_VER
-#define unlink _unlink
-#endif

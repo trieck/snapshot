@@ -195,7 +195,7 @@ void EventStore::getDigest(uint64_t bucket, digest_type digest) const
     memcpy(digest, bdigest, sizeof(digest_type));
 }
 
-void EventStore::setKey(uint64_t bucket, const std::string& key)
+void EventStore::setKey(uint64_t bucket, const std::string& key) const
 {
     uint32_t digest[SHA1_DIGEST_INTS];
     sha1(key, digest);
@@ -236,7 +236,7 @@ bool EventStore::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bu
     return findSlot(digest, pageno, bucket);
 }
 
-bool EventStore::isEqualDigest(digest_type d1, digest_type d2) const
+bool EventStore::isEqualDigest(digest_type d1, digest_type d2)
 {
     return memcmp(d1, d2, sizeof(digest_type)) == 0;
 }
