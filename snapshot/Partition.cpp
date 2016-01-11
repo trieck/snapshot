@@ -18,7 +18,7 @@ Partition::~Partition()
 #ifdef _MSC_VER
     _unlink(name_.c_str());
 #else
-    unlink(name_.c_str());
+    ::unlink(name_.c_str());
 #endif
 }
 

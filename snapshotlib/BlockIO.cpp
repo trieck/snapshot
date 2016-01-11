@@ -34,7 +34,7 @@ void BlockIO::unlink()
 #ifdef _MSC_VER
     _unlink(filename_.c_str());
 #else
-    unlink(filename_.c_str());
+    ::unlink(filename_.c_str());
 #endif
 }
 
