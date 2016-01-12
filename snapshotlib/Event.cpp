@@ -256,7 +256,7 @@ bool Event::removeChild(const std::string& objectId)
 
 Event Event::merge(const Event& event) const
 {
-    Event m(*this);
+    auto m(*this);
 
     auto& children = event[TREE_CHILDREN];
     for (Json::ValueConstIterator it = children.begin(); it != children.end(); ++it) {
