@@ -137,8 +137,12 @@ void SnapshotTree::parentRemove(const std::string& parentId, const std::string& 
 
 void SnapshotTree::destroy(const Event& event)
 {
-    store_.destroy(event);
-    parentRemove(event.getParentId(), event.getObjectId());
+    Event e;
+    if (store_.find(event.getObjectId(), e)) {
+        parentRemove(e.getParentId(), e.getObjectId());
+    }
+
+    store_.destroy(event);    
 }
 
 void SnapshotTree::update(const Event& event)
