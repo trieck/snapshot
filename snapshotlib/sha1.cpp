@@ -9,14 +9,14 @@ std::string sha1(const std::string& input)
     std::ostringstream ss;
     ss << std::hex;
 
-    for (auto i = 0; i < 5; ++i) {
-        ss << digest[i];
+    for (unsigned int i : digest) {
+        ss << i;
     }
 
     return ss.str();
 }
 
-void sha1(const std::string &input, boost::uuids::detail::sha1::digest_type digest)
+void sha1(const std::string &input, boost::uuids::detail::sha1::digest_type &digest)
 {
     boost::uuids::detail::sha1 sha1;
     sha1.process_bytes(input.c_str(), input.size());

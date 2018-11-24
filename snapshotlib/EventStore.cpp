@@ -3,9 +3,6 @@
 // ReSharper disable CppUnusedIncludeDirective
 #include "EventBuffer.h"
 // ReSharper restore CppUnusedIncludeDirective
-#include "Primes.h"
-#include "fnvhash.h"
-#include "sha1.h"
 
 // bucket flags                 
 #define BF_FILLED               (1 << 0)
@@ -138,12 +135,12 @@ bool EventStore::insert(const Event& event)
     return true;
 }
 
-uint64_t EventStore::hash(digest_type digest) const
+uint64_t EventStore::hash(const digest_type &digest) const
 {
     return hash(digest, tablesize_);
 }
 
-uint64_t EventStore::hash(digest_type digest, uint64_t m) const
+uint64_t EventStore::hash(const digest_type &digest, uint64_t m) const
 {
     return fnvhash64<digest_type>(digest) % m;
 }
@@ -189,7 +186,7 @@ bool EventStore::update(const Event& event)
     return true;
 }
 
-void EventStore::getDigest(uint64_t bucket, digest_type digest) const
+void EventStore::getDigest(uint64_t bucket, digest_type &digest) const
 {
     auto* bdigest = BUCKET_DIGEST(page_, bucket);
     memcpy(digest, bdigest, sizeof(digest_type));
@@ -202,7 +199,7 @@ void EventStore::setKey(uint64_t bucket, const std::string& key) const
     memcpy(BUCKET_DIGEST(page_, bucket), digest, sizeof(digest_type));
 }
 
-bool EventStore::findSlot(digest_type digest, uint64_t& pageno, uint64_t& bucket)
+bool EventStore::findSlot(const digest_type &digest, uint64_t &pageno, uint64_t &bucket)
 {
     auto h = hash(digest);
     pageno = h / BUCKETS_PER_PAGE;
@@ -236,7 +233,7 @@ bool EventStore::findSlot(const std::string& key, uint64_t& pageno, uint64_t& bu
     return findSlot(digest, pageno, bucket);
 }
 
-bool EventStore::isEqualDigest(digest_type d1, digest_type d2)
+bool EventStore::isEqualDigest(const digest_type &d1, const digest_type &d2)
 {
     return memcmp(d1, d2, sizeof(digest_type)) == 0;
 }
@@ -382,7 +379,7 @@ void EventStore::nextbucket(uint64_t i, uint64_t& bucket, uint64_t& pageno)
     }
 }
 
-uint64_t EventStore::runLength(digest_type digest)
+uint64_t EventStore::runLength(const digest_type &digest)
 {
     auto h = hash(digest);
     auto pageno = h / BUCKETS_PER_PAGE;

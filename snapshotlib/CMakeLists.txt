@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.3)
 PROJECT(snapshotlib)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-INCLUDE_DIRECTORIES(../../flatbuffers/include)
+INCLUDE_DIRECTORIES(../../../flatbuffers/include)
 SET(SOURCE_FILES
         util.cpp
         util.h
@@ -37,7 +37,7 @@ SET(SOURCE_FILES
 
 ADD_LIBRARY(snapshotlib ${SOURCE_FILES})
 
-FIND_PACKAGE(Boost 1.59.0)
+FIND_PACKAGE(Boost 1.68.0)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_SOURCE_DIR}/event_generated.h
